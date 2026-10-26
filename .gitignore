@@ -1,0 +1,9 @@
+# Public repo: sheet data never belongs here (see README)
+*.json
+*.csv
+*.tsv
+*.xlsx
+*.png
+*.jpg
+.env*
+.DS_Store
