@@ -51,8 +51,10 @@ Tabs without "<R> Review" ticks (older workspaces) hide "picks only". Where the 
 - Keys: `]` / `[` next / previous unreviewed, `→` / `←` photo, `↓` / `↑` listing, `1` like,
   `2` dislike (press again for normal), `⇧2` reject the listing, `0` clear, `B` mark seen photos
   normal, `R` photo view, `M` / `S` random order / reshuffle, `O` open the listing.
-- Phone: the bottom bar has like, dislike, next listing and previous / next unreviewed. Swipe left
-  or right for the next or previous unreviewed photo. Tap the photo to cycle like → dislike → clear.
+- Phone: the bottom bar has like, dislike, next listing and previous / next unreviewed. On the photo:
+  - one finger, swipe left / right or tap the right / left third: next / previous unreviewed (`]` / `[`)
+  - two fingers, the same: next / previous photo (`→` / `←`); two fingers up / down: listing (`↓` / `↑`)
+  - one-finger tap in the middle third: cycle like → dislike → clear
   ⓘ shows the listing's details and the filters.
 - Your J / T choice is remembered in this browser. Tap the badge to switch reviewer.
 - The Google sign-in lasts an hour. Marks you make after it expires are kept in the browser and
