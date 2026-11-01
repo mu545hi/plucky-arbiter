@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>Listing Photos</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #111; color: #eee;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden;
+}
+button, select {
+  background: #2a2a2a; border: 1px solid #444; color: #ccc; border-radius: 5px;
+  padding: 4px 10px; font-size: 12px; cursor: pointer; font-family: inherit;
+}
+button:hover, select:hover { background: #333; }
+a { color: #85c1e9; }
+
+/* ── Sign-in / setup screens ── */
+.screen {
+  flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; padding: 24px; text-align: center;
+}
+.screen.visible { display: flex; }
+.screen h1 { font-size: 26px; }
+.screen p { color: #8e8e93; font-size: 14px; max-width: 360px; line-height: 1.5; }
+.screen .big { font-size: 16px; padding: 12px 22px; border-radius: 10px; }
+.screen .primary { background: #1a5276; border-color: #2e86c1; color: #fff; font-weight: 700; }
+.screen code { background: #222; padding: 1px 6px; border-radius: 4px; color: #ddd; }
+#reviewer-btns { display: flex; gap: 12px; }
+#reviewer-btns button { font-size: 22px; font-weight: 800; width: 72px; height: 72px; border-radius: 14px; }
+#app { flex: 1; display: none; flex-direction: column; min-height: 0; }
+#app.visible { display: flex; }
+
+#header {
+  padding: 8px 14px; background: #1a1a1a; border-bottom: 1px solid #333;
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0; flex-wrap: wrap;
+}
+#progress { font-size: 12px; color: #888; }
+#progress b { color: #e67e22; font-weight: 700; }
+#counts { font-size: 12px; color: #888; display: flex; gap: 10px; }
+.c-liked { color: #4caf7d; } .c-mixed { color: #f1c40f; } .c-rejected { color: #e74c3c; }
+#mode-btn.random { border-color: #8e44ad; color: #c39bd3; }
+.tag.unsorted { background: #3a3320; color: #d4ac0d; }
+.tag.nonroom { background: #4a1a16; color: #f1948a; }
+#bulk-btn { margin-left: auto; border-color: #2a6644; background: #1a3d28; color: #4caf7d; font-weight: 700; }
+#bulk-btn:disabled, #clear-seen-btn:disabled { opacity: .35; cursor: default; }
+#flash { font-size: 12px; color: #5dade2; min-width: 140px; }
+#save { font-size: 12px; color: #888; }
+#save.err { color: #e74c3c; }
+label.chk { display: flex; align-items: center; gap: 5px; color: #aaa; font-size: 12px; cursor: pointer; }
+label.chk input { cursor: pointer; }
+#ws-badge { font-size: 11px; font-weight: 700; color: #f0b27a; background: #3a2a1a; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+
+#price-wrap { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #888; }
+#price-wrap input {
+  width: 84px; background: #222; border: 1px solid #444; color: #eee; border-radius: 5px;
+  padding: 4px 6px; font-size: 12px; font-family: inherit; font-variant-numeric: tabular-nums;
+}
+#price-wrap input:focus { outline: none; border-color: #5dade2; }
+#price-wrap input.active { border-color: #e67e22; color: #f0b27a; }
+#price-wrap input.bad { border-color: #c0392b; }
+
+#main { flex: 1; display: flex; min-height: 0; }
+#stage { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; background: #0b0b0b; touch-action: none; }
+#photo { max-width: 100%; max-height: 100%; object-fit: contain; }
+#stage.rejected #photo { opacity: .35; filter: grayscale(.7); }
+#banner {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  padding: 4px 14px; border-radius: 14px; font-size: 13px; font-weight: 700; display: none; white-space: nowrap;
+}
+#banner.rejected { display: block; background: #5c1f1a; color: #f5b7b1; }
+#banner.mixed    { display: block; background: #5c4b0f; color: #f9e79f; }
+#mark-badge {
+  position: absolute; bottom: 14px; left: 14px; padding: 6px 14px; border-radius: 6px;
+  font-size: 15px; font-weight: 800; display: none;
+}
+#mark-badge.like    { display: block; background: #1e8449; color: #fff; }
+#mark-badge.dislike { display: block; background: #b03a2e; color: #fff; }
+#mark-badge.normal  { display: block; background: #333; color: #aaa; font-weight: 600; font-size: 12px; }
+#reuse-badge {
+  position: absolute; top: 12px; right: 14px; padding: 3px 10px; border-radius: 12px;
+  font-size: 12px; font-weight: 700; background: #2c2350; color: #d2b4de; display: none;
+}
+#flag-badge {
+  position: absolute; top: 12px; left: 14px; padding: 3px 10px; border-radius: 12px;
+  font-size: 12px; font-weight: 700; background: #6e4a0e; color: #fde3b0; display: none;
+}
+.flagnote { margin-top: 6px; padding: 6px 8px; border-radius: 6px; background: #3a2a10; color: #fde3b0; }
+.dealnote { color: #7ee2b8; }
+.reuse a { color: #d2b4de; cursor: pointer; text-decoration: underline dotted; }
+#empty { color: #666; font-size: 15px; text-align: center; line-height: 1.7; padding: 0 20px; }
+
+#side {
+  width: 340px; flex-shrink: 0; background: #161616; border-left: 1px solid #333;
+  padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 13px;
+}
+#l-name a { color: #eee; font-size: 15px; font-weight: 700; text-decoration: none; line-height: 1.35; }
+#l-name a:hover { text-decoration: underline; }
+.meta { color: #999; line-height: 1.6; }
+.meta b { color: #ddd; font-weight: 600; }
+.rank { display: inline-block; background: #2c3e50; color: #85c1e9; border-radius: 4px; padding: 1px 7px; font-weight: 700; }
+.notes { background: #1f1f1f; border-left: 3px solid #5dade2; padding: 6px 9px; color: #ccc; }
+.status { display: inline-block; border-radius: 4px; padding: 1px 8px; font-weight: 700; font-size: 12px; }
+.status.liked { background: #1a3d28; color: #4caf7d; }
+.status.mixed { background: #4a3d0a; color: #f1c40f; }
+.status.rejected { background: #4a1a16; color: #e74c3c; }
+#p-label { color: #ddd; }
+.tag { display: inline-block; background: #263238; color: #80cbc4; border-radius: 4px; padding: 1px 7px; font-size: 11px; margin-right: 4px; }
+.tag.match { background: #1a3d28; color: #4caf7d; }
+.keys { color: #666; font-size: 11px; line-height: 1.8; border-top: 1px solid #2a2a2a; padding-top: 10px; margin-top: auto; }
+.keys kbd { background: #2a2a2a; border: 1px solid #444; border-radius: 3px; padding: 0 5px; color: #bbb; font-family: inherit; }
+
+#strip {
+  height: 92px; flex-shrink: 0; background: #151515; border-top: 1px solid #333;
+  display: flex; gap: 5px; padding: 7px 10px; overflow-x: auto; align-items: center;
+}
+#strip img {
+  height: 74px; width: 100px; object-fit: cover; border-radius: 4px; cursor: pointer;
+  border: 3px solid transparent; opacity: .55; flex-shrink: 0;
+}
+#strip img.seen { opacity: .85; border-color: #444; }
+#strip img.like { opacity: 1; border-color: #27ae60; }
+#strip img.dislike { opacity: 1; border-color: #c0392b; }
+#strip img.cur { opacity: 1; outline: 2px solid #5dade2; outline-offset: 1px; }
+
+/* Touch action bar (phone / tablet) */
+#actions { display: none; flex-shrink: 0; gap: 6px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); background: #1a1a1a; border-top: 1px solid #333; }
+#actions button { flex: 1; font-size: 15px; padding: 11px 0; border-radius: 9px; font-weight: 700; }
+#act-like { background: #1a3d28; border-color: #2a6644; color: #4caf7d; }
+#act-dislike { background: #4a1a16; border-color: #7b241c; color: #f1948a; }
+#info-btn { display: none; }
+
+#bulk-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none;
+  align-items: center; justify-content: center; z-index: 10;
+}
+#bulk-overlay.visible { display: flex; }
+#bulk-dialog {
+  background: #1c1c1c; border: 1px solid #444; border-radius: 10px; padding: 24px 28px; margin: 16px;
+  display: flex; flex-direction: column; gap: 12px; text-align: center; max-width: 380px;
+}
+#bulk-count { font-size: 28px; font-weight: 800; color: #27ae60; }
+#bulk-dialog p { font-size: 13px; color: #888; line-height: 1.5; }
+
+@media (hover: none), (max-width: 820px) {
+  #actions { display: flex; }
+  .keys { display: none; }
+}
+@media (max-width: 820px) {
+  #header { padding: 6px 10px; gap: 6px; }
+  #header .wide { display: none; }
+  #header.open .wide { display: flex; }
+  #info-btn { display: inline-block; }
+  #flash { min-width: 0; }
+  .wide-txt { display: none; }
+  #bulk-btn { margin-left: 0; }
+  #main { flex-direction: column; }
+  #side {
+    width: auto; border-left: none; border-top: 1px solid #333; max-height: 34vh;
+    padding: 10px 12px; gap: 8px; display: none;
+  }
+  #main.info #side { display: flex; }
+  #strip { height: 64px; padding: 5px 8px; }
+  #strip img { height: 52px; width: 70px; }
+}
+</style>
+</head>
+<body>
+
+<div id="auth-screen" class="screen">
+  <h1>Listing Photos</h1>
+  <p>Sign in with the Google account that can edit the trip-planning sheet.</p>
+  <button class="big primary" onclick="connectGoogle()">Sign in with Google</button>
+</div>
+
+<div id="tab-screen" class="screen">
+  <h1>Which tab?</h1>
+  <p>Open this page with the workspace tab in the address, e.g. <code>?tab=T_CITY_MMDD_MMDD</code>,
+     and bookmark that link.</p>
+</div>
+
+<div id="reviewer-screen" class="screen">
+  <h1>Who's reviewing?</h1>
+  <p>Your marks go to your own <code>Ranking</code> and <code>Photo Review</code> columns.</p>
+  <div id="reviewer-btns"></div>
+</div>
+
+<div id="loading-screen" class="screen"><p id="loading-msg">Loading…</p></div>
+
+<div id="app">
+<div id="header">
+  <span id="ws-badge" title="Switch reviewer"></span>
+  <span id="progress">loading…</span>
+  <span id="counts"></span>
+  <button id="info-btn" title="Listing details and filters">ⓘ</button>
+  <select id="region-sel" class="wide" title="Region (the sheet's District). Deep link: &region=<name>"></select>
+  <label class="chk wide" title="Only listings ticked in your Review column in the sheet">
+    <input type="checkbox" id="picks-chk"> <span id="picks-label">picks only</span></label>
+  <label class="chk" id="deals-wrap" style="display:none" title="Only listings a deal scan (intrepid-tuning deal_scan.py) found on or after this date. Deep link: &deals=<YYYY-MM-DD>">
+    <input type="checkbox" id="deals-chk"> <span id="deals-label">new deals</span></label>
+  <button id="refresh-btn" title="Re-read the sheet: new ticks, prices, photos">↻ sheet</button>
+  <label class="chk wide" title="Show listings whose price is UNAVAILABLE (dropped out of the search) or missing">
+    <input type="checkbox" id="unavail-chk"> include unavailable</label>
+  <select id="show-sel" class="wide" title="Which listings">
+    <option value="all">All listings</option>
+    <option value="open">Not rejected</option>
+    <option value="liked">Liked (incl. mixed)</option>
+    <option value="mixed">Mixed only</option>
+    <option value="rejected">Rejected only</option>
+  </select>
+  <div id="price-wrap" class="wide" title="Price per night (USD). Leave blank for no limit; any limit hides listings without a price.">
+    <span>$/night</span>
+    <input type="number" id="pmin" min="0" step="5" inputmode="numeric">
+    <span>–</span>
+    <input type="number" id="pmax" min="0" step="5" inputmode="numeric">
+  </div>
+  <select id="photo-view" title="R cycles: which photos to show">
+    <option value="rooms">Room + Listing</option>
+    <option value="bathroom">Bathrooms</option>
+    <option value="additional">Additional photos</option>
+    <option value="all">All photos</option>
+    <option value="flagged">Flagged by a photo rule</option>
+  </select>
+  <button id="mode-btn" title="M">Sorted</button>
+  <button id="shuffle-btn" title="S" style="display:none">Reshuffle</button>
+  <span id="flash"></span>
+  <span id="save"></span>
+  <button id="bulk-btn" title="B" disabled>Mark seen as normal</button>
+  <button id="clear-seen-btn" class="wide" title="Forget which photos you've viewed (marks are unchanged)" disabled>Clear seen</button>
+</div>
+<div id="main">
+  <div id="stage">
+    <img id="photo" referrerpolicy="no-referrer" alt="">
+    <div id="banner"></div>
+    <div id="mark-badge"></div>
+    <div id="reuse-badge"></div>
+    <div id="flag-badge"></div>
+    <div id="empty" style="display:none"></div>
+  </div>
+  <div id="side">
+    <div id="l-name"></div>
+    <div id="l-meta" class="meta"></div>
+    <div id="l-notes"></div>
+    <div id="p-info" class="meta"></div>
+    <div class="keys">
+      <kbd>]</kbd> <kbd>[</kbd> next / prev unreviewed<br>
+      <kbd>→</kbd> <kbd>←</kbd> next / prev photo (all) &nbsp; <kbd>↓</kbd> <kbd>↑</kbd> listing<br>
+      <kbd>1</kbd> like &nbsp; <kbd>2</kbd> dislike &nbsp; <kbd>0</kbd> clear<br>
+      <kbd>⇧2</kbd> reject listing (clears its likes)<br>
+      <kbd>B</kbd> bulk mark seen &nbsp; <kbd>M</kbd> sorted/random &nbsp; <kbd>S</kbd> reshuffle<br>
+      <kbd>R</kbd> photo view &nbsp; <kbd>O</kbd> open listing<br>
+      Touch: swipe ← → unreviewed · two fingers ← → photo, ↑ ↓ listing · tap cycles like / dislike / clear
+    </div>
+  </div>
+</div>
+<div id="strip"></div>
+<div id="actions">
+  <button id="act-prev" title="Previous unreviewed">‹</button>
+  <button id="act-like">♥ Like</button>
+  <button id="act-dislike">✗ Dislike</button>
+  <button id="act-listing" title="Next listing">⇣</button>
+  <button id="act-next" title="Next unreviewed">›</button>
+</div>
+</div>
+
+<div id="bulk-overlay">
+  <div id="bulk-dialog">
+    <h3 id="bulk-title">Mark seen photos as normal</h3>
+    <div id="bulk-count">0</div>
+    <p id="bulk-desc">Unmarked photos you've viewed since the last bulk mark become "normal" (reviewed) and
+       drop out of the <b>[ ]</b> cycle. Likes and dislikes are kept.</p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button id="bulk-ok" style="background:#27ae60;color:#fff;border-color:#27ae60;font-weight:700">Mark (Enter)</button>
+      <button id="bulk-cancel">Cancel (Esc)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Static port of intrepid-tuning's listing_photos/review_app.py. Everything comes from the sheet,
+// read and written with your own Google sign-in; nothing about the listings is stored in this repo.
+//   <TAB>          the workspace tab: listing rows, "<R> Review" ticks; "<R> Ranking" and
+//                  "<R> Photo Review" are written back (as push_photo_scores.py does)
+//   <TAB>_PHOTOS   photo lists, written by intrepid-tuning's listing_photos/sheet_review.py export
+//   <TAB>_MARKS    your marks: an append-only log (Reviewer, Photo Key, Mark, At), last row wins
+const CLIENT_ID = "849477607564-p3jib8rsfvlv2fgsif1avafrjo4qac5k.apps.googleusercontent.com";
+const SHEET_ID  = "12AJpufiet0VtgXl0X4HcZg3lVERyRqWCOomwTTMHdcg";
+const SCOPE     = "https://www.googleapis.com/auth/spreadsheets";
+const REVIEWERS = ["J", "T"];
+const SCORES = {liked: 3, neutral: 5, partial: 7, rejected: 10};   // photo_rules.py SCORES
+const SCORE_DELAY = 20000;   // write the score columns this long after the last mark (app_support.SheetWriter)
+
+// Set in boot(), after the sign-in redirect has put ?tab=… back in the address.
+let PARAMS = new URLSearchParams(), TAB = '', REVIEWER = '';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const safeUrl = u => /^https?:\/\//i.test(String(u || '')) ? String(u) : '#';
+function show(id) {
+  for (const s of ['auth-screen', 'tab-screen', 'reviewer-screen', 'loading-screen', 'app'])
+    $(s).classList.toggle('visible', s === id);
+}
+function loading(msg) { $('loading-msg').textContent = msg; show('loading-screen'); }
+
+// Per tab + reviewer browser settings (filters, place, "seen" list).
+function store(k, v) {
+  const key = `pa|${TAB}|${REVIEWER}|${k}`;
+  try {
+    if (v === undefined) return localStorage.getItem(key);
+    localStorage.setItem(key, v);
+  } catch (e) { return null; }
+}
+
+// ---------- Google sign-in (token in the URL fragment, as in didactic-parakeet) ----------
+let accessToken = null;
+function connectGoogle() {
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    redirect_uri: location.origin + location.pathname,
+    response_type: 'token',
+    scope: SCOPE,
+    state: location.search,   // keeps ?tab=… across the round trip
+    include_granted_scopes: 'true',
+  });
+  location = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+function handleAuth() {
+  const hash = location.hash;
+  if (hash.includes('access_token')) {
+    const p = new URLSearchParams(hash.substring(1));
+    accessToken = p.get('access_token');
+    const expires = Date.now() + (parseInt(p.get('expires_in') || '3600') - 60) * 1000;
+    try { sessionStorage.setItem('pa_token', JSON.stringify({t: accessToken, expires})); } catch (e) {}
+    const state = p.get('state');
+    history.replaceState(null, '', location.pathname + (state && state.startsWith('?') ? state : location.search));
+    return true;
+  }
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('pa_token') || 'null');
+    if (saved && saved.expires > Date.now()) { accessToken = saved.t; return true; }
+  } catch (e) {}
+  return false;
+}
+function signedOut() {
+  accessToken = null;
+  try { sessionStorage.removeItem('pa_token'); } catch (e) {}
+}
+
+// ---------- Sheets API ----------
+class AuthError extends Error {}
+async function api(path, opts = {}) {
+  if (!accessToken) throw new AuthError('signed out');
+  const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}${path}`, {
+    ...opts, headers: {Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', ...(opts.headers || {})},
+  });
+  if (res.status === 401) { signedOut(); throw new AuthError('sign-in expired'); }
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error?.message || `HTTP ${res.status}`);
+  return body;
+}
+const q = t => `'${t.replace(/'/g, "''")}'`;
+async function batchGet(ranges) {
+  const qs = ranges.map(r => 'ranges=' + encodeURIComponent(r)).join('&');
+  const d = await api(`/values:batchGet?${qs}&valueRenderOption=FORMATTED_VALUE`);
+  return (d.valueRanges || []).map(v => v.values || []);
+}
+async function tabTitles() {
+  const d = await api('?fields=sheets.properties.title');
+  return d.sheets.map(s => s.properties.title);
+}
+const appendRows = (tab, rows) => api(`/values/${encodeURIComponent(q(tab) + '!A:D')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+  {method: 'POST', body: JSON.stringify({values: rows})});
+const batchUpdate = data => api('/values:batchUpdate', {method: 'POST', body: JSON.stringify({valueInputOption: 'RAW', data})});
+function colLetter(i) { let s = ''; for (i++; i > 0; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + (i - 1) % 26) + s; return s; }
+function nowStamp() {   // local time without a zone, like the review app's marks.json
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+// ---------- sheet → page data (fetch_photos.read_rows / sheet_review.py) ----------
+const URL_HEADERS = ['Listing URL', 'Property URL', 'URL'], NAME_HEADERS = ['Listing', 'Property', 'Name'];
+const DETAIL_FIELDS = ['Site', 'Meal Plan [BOOK]', 'Free Cancellation [BOOK]', 'Non-Smoking [BOOK]', 'Rooms Left [BOOK]', 'Size (m²)',
+  'Bedrooms [AIR]', 'Rating', 'Badges [AIR]', 'Location', 'Map', 'Host [AIR]', 'Host ID [AIR]', 'Years Hosting [AIR]',
+  'Host Reviews [AIR]', 'Response Rate [AIR]', 'Response Time [AIR]', 'Review Flags', 'Room Review Flags [BOOK]'];
+function listingKey(url) {   // fetch_photos.listing_key
+  let m;
+  if ((m = /[?&]unit=([a-z]{2}\/[^~&#]+)~(\d+)~/.exec(url))) return `book:${m[1]}#${m[2]}`;
+  if ((m = /airbnb\.[^/]+\/rooms\/(\d+)/.exec(url))) return `air:${m[1]}`;
+  if ((m = /booking\.com\/hotel\/([a-z]{2}\/[^.?/]+)/.exec(url))) return `book:${m[1]}`;
+  return null;
+}
+const ticked = v => ['true', 'x', 'yes', 'y', '1', '✓', '✔'].includes(String(v ?? '').trim().toLowerCase());
+
+let HDR = [];   // the workspace tab's header row (for the score write-back)
+const hasPicks = () => HDR.includes(`${REVIEWER} Review`);   // older tabs have no Review ticks: "picks only" is off
+function parseRows(values) {
+  HDR = values[0] || [];
+  const ix = h => HDR.indexOf(h);
+  const urlCol = URL_HEADERS.map(ix).find(i => i >= 0), nameCol = NAME_HEADERS.map(ix).find(i => i >= 0);
+  if (urlCol === undefined) throw new Error(`${TAB} has no URL column`);
+  const fields = [...DETAIL_FIELDS, ...HDR.filter(h => h.startsWith('Miles to ') || h.startsWith('$/night '))];
+  const rows = [];
+  values.slice(1).forEach((r, i) => {
+    const cell = h => { const j = ix(h); return j >= 0 && j < r.length ? String(r[j]).trim() : ''; };
+    const url = String(r[urlCol] || '').trim(), key = listingKey(url);
+    if (!key) return;
+    const rankM = /^\s*(\d+(?:\.\d+)?)/.exec(cell(`${REVIEWER} Ranking`).split('\n')[0]);
+    let night = cell('Price / Night (USD)');   // fetch_photos.night_price
+    if (isNaN(parseFloat(night))) {
+      const ws = HDR.filter(h => h.startsWith('$/night ')).map(h => parseFloat(cell(h))).filter(v => !isNaN(v));
+      if (ws.length) night = String(Math.min(...ws));
+    }
+    const details = {};
+    for (const f of fields) if (cell(f)) details[f.split(' [')[0]] = cell(f);
+    rows.push({
+      tab: TAB, sheetRow: i + 2, key, url,
+      name: nameCol !== undefined ? String(r[nameCol] || '').trim() : '',
+      district: cell('District'), room: cell('Room') || cell('Room [BOOK]'),
+      total: cell('Total Price (USD)'), night, retrieved: cell('Last Retrieved'), deals: cell('Deals'),
+      dealScan: cell('Deal Scan'),
+      details, rank: rankM ? parseFloat(rankM[1]) : null,
+      review_pick: ticked(cell(`${REVIEWER} Review`)),
+      notes: r.slice(HDR.length).map(c => String(c).trim()).filter(Boolean).join(' · '),
+    });
+  });
+  return rows;
+}
+
+function parsePhotos(values) {
+  const hdr = values[0] || [], ix = Object.fromEntries(hdr.map((h, i) => [h, i]));
+  const listings = {}, groups = {}, twins = {}, also = {};
+  for (const r of values.slice(1)) {
+    const c = h => String(r[ix[h]] ?? '');
+    const key = c('Key'); if (!key || !c('Photo ID')) continue;
+    const p = {id: c('Photo ID'), url: c('URL'), thumb: c('Thumb') || c('URL'), label: c('Label'), room: c('Room'),
+               cls: c('Class') || 'unknown', bath: !!c('Bath'), flag: c('Flag')};
+    (listings[key] ||= {photos: []}).photos.push(p);
+    const pk = key + '|' + p.id;
+    if (c('Group')) (groups[c('Group')] ||= []).push(pk);
+    if (c('Twin')) (twins[c('Twin')] ||= []).push(pk);
+    if (c('Also In')) also[pk] = c('Also In').split(' ').filter(Boolean);
+  }
+  return {listings, groups, twins, also};
+}
+
+// Reused photos in photo_reuse.py's shape: photos {pk: [other listings]}, listings {lkey: {shared, rooms, with}}.
+function buildReuse(also) {
+  const listings = {};
+  for (const [pk, others] of Object.entries(also)) {
+    const [lkey, id] = pk.split('|');
+    const p = (LISTINGS[lkey]?.photos || []).find(x => x.id === id);
+    const L = listings[lkey] ||= {shared: 0, rooms: 0, with: {}};
+    L.shared++;
+    if (p && (p.cls === 'room' || p.cls === 'listing')) L.rooms++;
+    for (const k of others) L.with[k] = (L.with[k] || 0) + 1;
+  }
+  return {photos: also, listings};
+}
+
+// ---------- marks ----------
+// OWN: your marks from the log (copies in a group are logged too, as review_app.py stores them).
+// MARKS: OWN plus what the review app would derive: a group copy without a mark takes the group's
+// latest (photo_reuse.share_marks), and an unmarked copy in another listing of a picture you've
+// marked counts as seen, "normal" (photo_reuse.share_seen).
+let OWN = {}, OWN_AT = {};
+function parseMarks(values) {
+  OWN = {}; OWN_AT = {};
+  for (const r of values.slice(1)) {
+    const [rv, pk, m, at] = r.map(x => String(x ?? ''));
+    if (rv !== REVIEWER || !pk) continue;
+    if (m === 'clear' || !m) { delete OWN[pk]; delete OWN_AT[pk]; } else { OWN[pk] = m; OWN_AT[pk] = at; }
+  }
+}
+function deriveMarks() {
+  MARKS = {...OWN};
+  for (const g of Object.values(GROUPS)) {
+    const got = g.filter(pk => OWN[pk]).sort((a, b) => (OWN_AT[b] || '').localeCompare(OWN_AT[a] || ''));
+    if (got.length) for (const pk of g) if (!MARKS[pk]) MARKS[pk] = OWN[got[0]];
+  }
+  for (const g of Object.values(TWINS)) {
+    if (g.some(pk => OWN[pk])) for (const pk of g) if (!MARKS[pk]) MARKS[pk] = 'normal';
+  }
+}
+
+// Unsaved marks wait here (and in the browser, so a sign-in round trip loses nothing).
+let pending = [];
+const loadPending = () => { try { pending = JSON.parse(localStorage.getItem('pa_pending|' + TAB) || '[]'); } catch (e) {} };
+const savePending = () => { try { localStorage.setItem('pa_pending|' + TAB, JSON.stringify(pending)); } catch (e) {} };
+let saving = false, saveTimer = null, scoreTimer = null, scoreState = '';
+function queueSave(flush) {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveMarks, flush ? 0 : 1200);
+}
+async function saveMarks() {
+  if (saving || !pending.length) return;
+  saving = true;
+  const batch = pending.slice();
+  showSave('saving…');
+  try {
+    await appendRows(TAB + '_MARKS', batch);
+    pending = pending.slice(batch.length); savePending();
+    showSave('');
+    scheduleScores();
+  } catch (e) {
+    showSave(e instanceof AuthError ? 'signed out: marks kept, sign in again' : 'save failed: ' + e.message, true);
+    if (e instanceof AuthError) authLost();
+    else setTimeout(() => queueSave(true), 15000);
+  } finally {
+    saving = false;
+    if (pending.length && !$('save').classList.contains('err')) queueSave();
+  }
+}
+function showSave(msg, err = false) {
+  const parts = [msg, scoreState].filter(Boolean);
+  $('save').textContent = parts.join(' · ');
+  $('save').classList.toggle('err', err);
+}
+function authLost() {
+  flash('Sign-in expired');
+  if (confirm('Your Google sign-in expired. Sign in again? Unsaved marks are kept and saved afterwards.')) connectGoogle();
+}
+
+// ---------- score columns (push_photo_scores.py) ----------
+function verdict(lkey) {   // photo_rules.verdict: (status, counts)
+  const photos = LISTINGS[lkey]?.photos || [];
+  const c = {like: 0, neutral: 0, dislike: 0, unreviewed: 0};
+  for (const p of photos) {
+    const m = MARKS[lkey + '|' + p.id];
+    if (m === 'like') c.like++; else if (m === 'normal') c.neutral++; else if (m === 'dislike') c.dislike++;
+    else if (p.cls === 'room' || p.cls === 'listing') c.unreviewed++;
+  }
+  if (c.like) return ['liked', c];
+  if (c.dislike) return ['rejected', c];
+  if (!c.neutral) return [null, c];
+  return [c.unreviewed === 0 ? 'neutral' : 'partial', c];
+}
+function scoreNote(lkey) {
+  if (!LISTINGS[lkey]) return [null, ''];
+  const [st, c] = verdict(lkey);
+  if (!st) return [null, ''];
+  const s = SCORES[st];
+  return [s, `${c.like} like · ${c.neutral} neutral · ${c.unreviewed} unreviewed · ${c.dislike} dislike (score ${s})`];
+}
+function newRankCell(current, reviewCell, score) {   // push_photo_scores.new_rank_cell
+  const PHOTO_LINE = /^\s*photos:\s*\S*\s*$/i;
+  const lines = current.split('\n');
+  let own;
+  if (lines.some(l => PHOTO_LINE.test(l))) own = lines.filter(l => !PHOTO_LINE.test(l)).join('\n').trim();
+  else { const prev = /\(score (\d+)\)/.exec(reviewCell); own = prev && current.trim() === prev[1] ? '' : current.trim(); }
+  if (score === null) return own;
+  return own ? `${own}\nphotos: ${score}` : String(score);
+}
+function scheduleScores(now = false) {
+  clearTimeout(scoreTimer);
+  scoreState = 'sheet: pending'; showSave('');
+  scoreTimer = setTimeout(writeScores, now ? 0 : SCORE_DELAY);
+}
+async function writeScores() {
+  const rankH = `${REVIEWER} Ranking`;
+  let reviewH = `${REVIEWER} Photo Review`;
+  try {
+    // Re-read the columns so a rating you typed in the sheet meanwhile is kept.
+    const [values] = await batchGet([q(TAB) + '!A:ZZ']);
+    const hdr = values[0] || [];
+    // Workspaces without "reviewers" (push_photo_scores.py) have "J Ranking" and a bare "Photo Review".
+    if (REVIEWER === 'J' && !hdr.includes(reviewH) && hdr.includes('Photo Review')) reviewH = 'Photo Review';
+    const urlCol = URL_HEADERS.map(h => hdr.indexOf(h)).find(i => i >= 0);
+    const rc = hdr.indexOf(rankH), vc = hdr.indexOf(reviewH);
+    if (urlCol === undefined || rc < 0 || vc < 0) {
+      scoreState = `no “${rankH}” / “${reviewH}” column in ${TAB}`; showSave('', true); return;
+    }
+    const data = [];
+    values.slice(1).forEach((r, i) => {
+      const key = listingKey(String(r[urlCol] || '').trim()); if (!key) return;
+      const [score, note] = scoreNote(key);
+      const oldRank = String(r[rc] ?? ''), oldReview = String(r[vc] ?? '');
+      const rank = newRankCell(oldRank, oldReview, score);
+      if (rank !== oldRank) data.push({range: `${q(TAB)}!${colLetter(rc)}${i + 2}`, values: [[rank]]});
+      if (note !== oldReview) data.push({range: `${q(TAB)}!${colLetter(vc)}${i + 2}`, values: [[note]]});
+    });
+    for (let i = 0; i < data.length; i += 500) await batchUpdate(data.slice(i, i + 500));
+    scoreState = `sheet saved ${new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}`;
+    showSave('');
+  } catch (e) {
+    scoreState = 'sheet write failed: ' + e.message; showSave('', true);
+    if (e instanceof AuthError) authLost(); else scoreTimer = setTimeout(writeScores, 60000);
+  }
+}
+
+// ---------- state ----------
+let ROWS = [], LISTINGS = {}, MARKS = {};
+let REUSE = {photos: {}, listings: {}};
+let GROUPS = {}, TWINS = {}, COPIES = {};   // photo key → every photo key of the same picture in its hotel / listing
+function setCopies() { COPIES = {}; for (const g of Object.values(GROUPS)) for (const pk of g) COPIES[pk] = g; }
+let items = [];          // current order: {pk, lkey, row, photo, i, n, cls}
+let pos = 0;
+let mode = 'sorted', seed = 0;
+// Photos shown since the last bulk mark, kept in this browser.
+let viewed = new Set();
+function loadSeen() { try { viewed = new Set(JSON.parse(store('seen') || '[]')); } catch (e) { viewed = new Set(); } }
+function saveSeen() { store('seen', JSON.stringify([...viewed])); }
+function newSeed() { const s = Math.floor(Math.random() * 1e9); store('seed', String(s)); return s; }
+
+// ---------- listing status ----------
+function listingStatus(lkey) {
+  const photos = (LISTINGS[lkey] || {}).photos || [];
+  let like = 0, dislike = 0;
+  for (const p of photos) {
+    const m = MARKS[lkey + '|' + p.id];
+    if (m === 'like') like++; else if (m === 'dislike') dislike++;
+  }
+  if (dislike && like) return 'mixed';
+  if (dislike) return 'rejected';
+  if (like) return 'liked';
+  return '';
+}
+
+function nightPrice(r) { const v = parseFloat(r.night); return isNaN(v) ? Infinity : v; }
+
+// Deal scans (intrepid-tuning listing_photos/deal_scan.py) write "Deal Scan": "<YYYY-MM-DD>: <the deal>".
+// The "new deals" filter keeps rows a scan found on or after DEALS_SINCE (&deals=, else the latest scan).
+let DEALS_SINCE = '';
+const dealDate = r => (/^(\d{4}-\d{2}-\d{2}):/.exec(r.dealScan || '') || [, ''])[1];
+function setupDeals() {
+  $('picks-chk').parentElement.style.display = hasPicks() ? '' : 'none';
+  const dates = ROWS.map(dealDate).filter(Boolean).sort();
+  $('deals-wrap').style.display = dates.length ? '' : 'none';
+  const want = PARAMS.get('deals');
+  DEALS_SINCE = /^\d{4}-\d{2}-\d{2}$/.test(want || '') ? want : (dates[dates.length - 1] || '');
+  $('deals-label').textContent = `new deals since ${DEALS_SINCE.slice(5).replace('-', '/')}`;
+  if (want) $('deals-chk').checked = true;
+}
+
+// Photo view: rooms = room-labelled photos + Airbnb's "Listing" group, bathroom = bathroom photos,
+// additional = Airbnb's other unsorted groups, all = everything (Class / Bath come from
+// classify() and is_bathroom() in photo_rules.py, via the photos tab).
+const PHOTO_VIEWS = {
+  rooms: p => p.cls === 'room' || p.cls === 'listing', bathroom: p => p.bath,
+  additional: p => p.cls === 'unknown', all: () => true, flagged: p => !!p.flag,
+};
+const VIEW_ORDER = ['rooms', 'bathroom', 'additional', 'all', 'flagged'];
+let photoView = 'rooms';
+let hiddenCount = 0, unavailHidden = 0, copiesHidden = 0;
+
+function shownPhotos(lkey) {
+  const keep = PHOTO_VIEWS[photoView] || PHOTO_VIEWS.rooms;
+  return (LISTINGS[lkey].photos || []).filter(p => keep(p)).map(p => ({p, cls: p.cls}));
+}
+
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// ---------- price per night filter ----------
+function priceRange() {
+  const v = id => { const s = $(id).value.trim(); return s === '' ? null : +s; };
+  return [v('pmin'), v('pmax')];
+}
+function setupPrice() {
+  const vals = ROWS.map(nightPrice).filter(isFinite);
+  $('pmin').placeholder = vals.length ? 'min ' + Math.floor(Math.min(...vals)) : 'min';
+  $('pmax').placeholder = vals.length ? 'max ' + Math.ceil(Math.max(...vals)) : 'max';
+  let saved = null;
+  try { saved = JSON.parse(store('price') || 'null'); } catch (e) {}
+  $('pmin').value = saved?.[0] ?? '';
+  $('pmax').value = saved?.[1] ?? '';
+  paintPrice();
+}
+function paintPrice() {
+  const [lo, hi] = priceRange();
+  $('pmin').classList.toggle('active', lo !== null);
+  $('pmax').classList.toggle('active', hi !== null);
+  const bad = lo !== null && hi !== null && lo > hi;
+  $('pmin').classList.toggle('bad', bad); $('pmax').classList.toggle('bad', bad);
+}
+let priceTimer;
+function onPriceInput() {
+  paintPrice();
+  store('price', JSON.stringify(priceRange()));
+  clearTimeout(priceTimer);
+  priceTimer = setTimeout(() => { buildOrder(items[pos]?.pk); render(); }, 250);
+}
+function onPriceKey(e) { if (e.key === 'Enter' || e.key === 'Escape') e.target.blur(); }
+
+function buildOrder(keepPk) {
+  const show = $('show-sel').value, region = $('region-sel').value || 'ALL';
+  const [plo, phi] = priceRange(), priceOn = plo !== null || phi !== null;
+  const withUnavail = $('unavail-chk').checked, picksOnly = $('picks-chk').checked && hasPicks();
+  const picked = new Set(ROWS.filter(x => x.review_pick).map(x => x.key));   // any of its rows ticked
+  const dealsOnly = $('deals-chk').checked;
+  const seen = new Set(), rows = [], unavail = new Set();
+  for (const r of ROWS) {
+    if (region !== 'ALL' && r.district !== region) continue;
+    if (dealsOnly) { if (dealDate(r) < DEALS_SINCE) continue; }   // the deal filter replaces "picks only"
+    else if (picksOnly && !picked.has(r.key)) continue;
+    if (!withUnavail && !isFinite(nightPrice(r))) { unavail.add(r.key); continue; }
+    if (priceOn) {
+      const v = nightPrice(r);
+      if (!isFinite(v) || (plo !== null && v < plo) || (phi !== null && v > phi)) continue;
+    }
+    if (seen.has(r.key)) {   // several rows (a Booking room type's rates): the cheapest represents it
+      const j = rows.findIndex(x => x.key === r.key);
+      if (j >= 0 && nightPrice(r) < nightPrice(rows[j])) rows[j] = r;
+      continue;
+    }
+    if (!LISTINGS[r.key] || !(LISTINGS[r.key].photos || []).length) continue;
+    const st = listingStatus(r.key);
+    if (show === 'open' && st === 'rejected') continue;
+    if (show === 'liked' && st !== 'liked' && st !== 'mixed') continue;
+    if (show === 'mixed' && st !== 'mixed') continue;
+    if (show === 'rejected' && st !== 'rejected') continue;
+    seen.add(r.key); rows.push(r);
+  }
+  unavailHidden = [...unavail].filter(k => !seen.has(k) && LISTINGS[k]?.photos?.length).length;
+  rows.sort((a, b) => ((a.rank ?? Infinity) - (b.rank ?? Infinity)) || (nightPrice(a) - nightPrice(b)));
+
+  // Each picture once: a copy (COPIES) is skipped after its first appearance in this order.
+  items = []; hiddenCount = 0; copiesHidden = 0;
+  const shownCopy = new Set();
+  for (const r of rows) {
+    const ps = shownPhotos(r.key);
+    hiddenCount += LISTINGS[r.key].photos.length - ps.length;
+    ps.forEach(({p, cls}, i) => {
+      const pk = r.key + '|' + p.id, g = COPIES[pk];
+      if (g) {
+        if (shownCopy.has(g[0])) { copiesHidden++; return; }
+        shownCopy.add(g[0]);
+      }
+      items.push({pk, lkey: r.key, row: r, photo: p, i, n: ps.length, cls});
+    });
+  }
+  if (mode === 'random') {
+    const rnd = mulberry32(seed);
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+  }
+  const k = keepPk ? items.findIndex(it => it.pk === keepPk) : -1;
+  pos = k >= 0 ? k : 0;
+}
+
+// ---------- navigation ----------
+// Unreviewed = no mark of its own, in a listing with no dislike-only reject and no like.
+function eligible(it) { return !MARKS[it.pk] && listingStatus(it.lkey) === ''; }
+
+function nextUnreviewed(dir) {
+  const n = items.length;
+  for (let s = 1; s <= n; s++) {
+    const j = ((pos + dir * s) % n + n) % n;
+    if (eligible(items[j])) { pos = j; render(); return; }
+  }
+  if (pos < 0 || pos >= n) pos = 0;
+  render();
+  flash('No unreviewed photos left in this view');
+  if (scoreTimer && scoreState === 'sheet: pending') scheduleScores(true);   // done with the view: write the sheet now
+}
+function step(dir) {
+  const j = pos + dir;
+  if (j < 0 || j >= items.length) return flash(dir > 0 ? 'End of list' : 'Start of list');
+  pos = j; render();
+}
+function stepListing(dir) {
+  const cur = items[pos]?.lkey;
+  let j = pos;
+  while (j >= 0 && j < items.length && items[j].lkey === cur) j += dir;
+  if (j < 0 || j >= items.length) return flash('No more listings');
+  if (dir < 0) { const l = items[j].lkey; while (j > 0 && items[j - 1].lkey === l) j--; }
+  pos = j; render();
+}
+
+// ---------- marking ----------
+// A mark applies to every copy of the picture (COPIES); a mark wins over a clear.
+function postMarks(updates, flush = false) {
+  const at = nowStamp(), out = {};
+  for (const [pk, m] of Object.entries(updates).sort((a, b) => (a[1] !== null) - (b[1] !== null)))
+    for (const c of COPIES[pk] || [pk]) out[c] = m;
+  for (const [pk, m] of Object.entries(out)) {
+    if (m === null) { delete OWN[pk]; delete OWN_AT[pk]; } else { OWN[pk] = m; OWN_AT[pk] = at; }
+    pending.push([REVIEWER, pk, m === null ? 'clear' : m, at]);
+  }
+  savePending();
+  deriveMarks();
+  render();
+  queueSave(flush);
+}
+function mark(kind) {
+  const it = items[pos]; if (!it) return;
+  const before = listingStatus(it.lkey);
+  const cur = OWN[it.pk];
+  postMarks({[it.pk]: kind === null ? null : (cur === kind ? 'normal' : kind)});
+  const after = listingStatus(it.lkey);
+  if (after !== before) flash({rejected: 'Listing rejected', mixed: 'Listing is mixed — look closer', liked: 'Listing liked', '': 'Listing cleared'}[after]);
+}
+// Shift+2: reject the listing outright. Clears its liked photos and dislikes this one.
+function rejectListing() {
+  const it = items[pos]; if (!it) return;
+  const ups = {[it.pk]: 'dislike'};
+  for (const p of LISTINGS[it.lkey].photos || []) {
+    const pk = it.lkey + '|' + p.id;
+    if (pk !== it.pk && OWN[pk] === 'like') ups[pk] = null;
+  }
+  const cleared = Object.keys(ups).length - 1;
+  postMarks(ups);
+  flash('Listing rejected' + (cleared ? ` (cleared ${cleared} like${cleared === 1 ? '' : 's'})` : ''));
+}
+
+function bulkCandidates() {
+  return [...viewed].filter(pk => {
+    if (MARKS[pk]) return false;
+    const st = listingStatus(pk.split('|')[0]);
+    return st !== 'liked' && st !== 'mixed';   // already counted as reviewed
+  });
+}
+function showBulk() {
+  const n = bulkCandidates().length;
+  if (!n) return flash('Nothing new seen');
+  $('bulk-count').textContent = n + ' photo' + (n === 1 ? '' : 's');
+  $('bulk-overlay').classList.add('visible');
+}
+function hideBulk() { $('bulk-overlay').classList.remove('visible'); }
+function clearSeen() {
+  const n = viewed.size;
+  viewed.clear();
+  const cur = items[pos]; if (cur) viewed.add(cur.pk);   // the photo on screen is still seen
+  saveSeen(); render(); flash(`Forgot ${n} seen photo${n === 1 ? '' : 's'}`);
+}
+function doBulk() {
+  const ups = Object.fromEntries(bulkCandidates().map(pk => [pk, 'normal']));
+  viewed.clear(); saveSeen();
+  hideBulk();
+  postMarks(ups, true);
+  scheduleScores(true);   // a checkpoint: written to the sheet at once
+  flash(Object.keys(ups).length + ' marked normal');
+}
+
+// ---------- detail columns ----------
+function detailLines(r) {
+  const d = r.details || {};
+  const out = [];
+  const bits = [d['Rating'] && `★ ${esc(d['Rating'])}`, d['Badges'] && esc(d['Badges']), d['Bedrooms'] && esc(d['Bedrooms']),
+                d['Size (m²)'] && `${esc(d['Size (m²)'])} m²`].filter(Boolean);
+  if (bits.length) out.push(bits.join(' · '));
+  const where = d['Location'] ? esc(d['Location']) : '';
+  if (where || d['Map']) out.push(`📍 ${where}${d['Map'] ? ` <a href="${esc(safeUrl(d['Map']))}" target="_blank" rel="noopener noreferrer">map</a>` : ''}`);
+  const dists = Object.entries(d).filter(([k]) => k.startsWith('Miles to ')).map(([k, v]) => `${esc(k.slice(9))} ${esc(v)} mi`).join(' · ');
+  if (dists) out.push(`↔ ${dists}`);
+  const host = hostText(d);
+  if (host) out.push(`👤 ${host}`);
+  const reviews = [d['Review Flags'] && esc(d['Review Flags']),
+                   d['Room Review Flags'] && `this room: ${esc(d['Room Review Flags'])}`].filter(Boolean).join(' — ');
+  if (reviews) out.push(`💬 ${reviews}`);
+  return out;
+}
+function hostText(d) {
+  if (!d['Host']) return '';
+  const name = /^\d+$/.test(d['Host ID'] || '')
+    ? `<a href="https://www.airbnb.com/users/show/${esc(d['Host ID'])}" target="_blank" rel="noopener noreferrer">${esc(d['Host'])}</a>` : esc(d['Host']);
+  const bits = [d['Years Hosting'] && `${esc(d['Years Hosting'])} yrs hosting`, d['Host Reviews'] && `${esc(d['Host Reviews'])} reviews`,
+                d['Response Rate'] && `responds ${esc(d['Response Rate'])}`, d['Response Time'] && esc(d['Response Time']).toLowerCase()].filter(Boolean);
+  return name + (bits.length ? ` (${bits.join(', ')})` : '');
+}
+function ratesLine(lkey) {
+  const rates = ROWS.filter(x => x.key === lkey && x.details && x.details['Meal Plan']);
+  if (!rates.length) return '';
+  const seen = new Set();
+  return 'Rates: ' + rates.sort((a, b) => nightPrice(a) - nightPrice(b)).filter(x => {
+    const k = x.details['Meal Plan'] + x.details['Free Cancellation'] + x.night;
+    return !seen.has(k) && seen.add(k);
+  }).map(x => `<b>$${esc(x.night)}</b> ${esc(x.details['Meal Plan'])}${x.details['Free Cancellation'] === 'yes' ? ', free cancellation' : ''}`
+          + (x.details['Rooms Left'] ? ` (${esc(x.details['Rooms Left'])} left)` : '')).join(' · ');
+}
+
+// ---------- reused photos ----------
+function listingName(k) { return (ROWS.find(r => r.key === k) || {}).name || k; }
+function jumpLink(k, count) {
+  const label = esc(listingName(k).slice(0, 48)) + (count ? ` (${count})` : '');
+  return `<a data-jump="${esc(k)}" title="${esc(listingName(k))}">${label}</a>`;
+}
+function reuseLine(lkey) {
+  const r = REUSE.listings[lkey]; if (!r) return '';
+  const total = (LISTINGS[lkey].photos || []).length;
+  const withs = Object.entries(r.with).sort((a, b) => b[1] - a[1]);
+  const rooms = r.rooms ? ` (${r.rooms} of them room photos)` : ' (no room photos)';
+  return `<span class="reuse">⧉ ${r.shared} of ${total} photos${rooms} also in: ${withs.map(([k, n]) => jumpLink(k, n)).join(', ')}</span>`;
+}
+function jumpTo(k) {
+  const j = items.findIndex(it => it.lkey === k);
+  if (j < 0) return flash('That listing isn\'t in the current view (check the filters / photo view)');
+  pos = j; render();
+}
+document.addEventListener('click', e => { const k = e.target.dataset?.jump; if (k) { e.preventDefault(); jumpTo(k); } });
+
+// ---------- rendering ----------
+let flashTimer;
+function flash(msg) { $('flash').textContent = msg; clearTimeout(flashTimer); flashTimer = setTimeout(() => $('flash').textContent = '', 2500); }
+
+function render() {
+  const it = items[pos];
+  if (it && !viewed.has(it.pk)) { viewed.add(it.pk); saveSeen(); }
+  const totalElig = items.filter(eligible).length;
+  $('progress').innerHTML = items.length
+    ? `${pos + 1} / ${items.length} &nbsp;·&nbsp; <b>${totalElig}</b> unreviewed`
+      + (photoView !== 'all' ? `<span class="wide-txt"> &nbsp;·&nbsp; ${hiddenCount} other photos hidden</span>` : '')
+      + (copiesHidden ? `<span class="wide-txt"> &nbsp;·&nbsp; ${copiesHidden} repeat${copiesHidden === 1 ? '' : 's'} shown once</span>` : '')
+      + (unavailHidden ? `<span class="wide-txt"> &nbsp;·&nbsp; ${unavailHidden} unavailable hidden</span>` : '')
+    : $('deals-chk').checked ? `No listings with a deal found since ${esc(DEALS_SINCE)}`
+    : ($('picks-chk').checked && hasPicks() && !ROWS.some(r => r.review_pick)
+        ? `No listings ticked in “${esc(REVIEWER)} Review” yet: tick some in the sheet, then ↻ sheet`
+        : 'no photos');
+  $('photo-view').value = photoView;
+  const st = {liked: 0, mixed: 0, rejected: 0};
+  for (const k of new Set(items.map(i => i.lkey))) { const s = listingStatus(k); if (s) st[s]++; }
+  $('counts').innerHTML = `<span class="c-liked">♥ ${st.liked}</span><span class="c-mixed">◐ ${st.mixed}</span><span class="c-rejected">✗ ${st.rejected}</span>`;
+  $('mode-btn').textContent = mode === 'sorted' ? 'Sorted' : 'Random';
+  $('mode-btn').classList.toggle('random', mode === 'random');
+  $('shuffle-btn').style.display = mode === 'random' ? '' : 'none';
+  const nb = bulkCandidates().length;
+  $('bulk-btn').disabled = !nb;
+  $('bulk-btn').textContent = nb ? `Mark ${nb} seen as normal` : 'Mark seen as normal';
+  $('clear-seen-btn').disabled = !nb;
+
+  if (!it) {
+    $('photo').style.display = 'none'; $('strip').innerHTML = '';
+    $('empty').style.display = '';
+    $('empty').innerHTML = Object.keys(LISTINGS).length
+      ? 'No photos in this view.<br>Change the filters, or tick listings in the sheet.'
+      : `No photos for this tab yet.<br>Run <code>listing_photos/sheet_review.py export</code> in intrepid-tuning.`;
+    ['l-name', 'l-meta', 'l-notes', 'p-info'].forEach(id => $(id).innerHTML = '');
+    $('banner').className = ''; $('mark-badge').className = ''; $('reuse-badge').style.display = 'none';
+    $('flag-badge').style.display = 'none';
+    return;
+  }
+  $('empty').style.display = 'none'; $('photo').style.display = '';
+
+  const status = listingStatus(it.lkey);
+  const m = MARKS[it.pk];
+  if ($('photo').dataset.src !== it.photo.url) { $('photo').src = it.photo.url; $('photo').dataset.src = it.photo.url; }
+  $('stage').classList.toggle('rejected', status === 'rejected');
+  $('banner').className = status === 'rejected' || status === 'mixed' ? status : '';
+  $('banner').textContent = status === 'rejected' ? 'Listing rejected' : status === 'mixed' ? 'Mixed: liked + disliked photos' : '';
+  $('mark-badge').className = m || '';
+  $('mark-badge').textContent = {like: '♥ LIKE', dislike: '✗ DISLIKE', normal: 'seen'}[m] || '';
+  const reusedIn = REUSE.photos[it.pk] || [];
+  $('reuse-badge').style.display = reusedIn.length ? 'block' : 'none';
+  $('reuse-badge').textContent = `⧉ also in ${reusedIn.length} other listing${reusedIn.length === 1 ? '' : 's'}`;
+  $('flag-badge').style.display = it.photo.flag ? 'block' : 'none';
+  $('flag-badge').textContent = it.photo.flag ? '⚑ flagged: ' + it.photo.flag.split(' · ')[0] : '';
+
+  const r = it.row;
+  $('l-name').innerHTML = `<a href="${esc(safeUrl(r.url))}" target="_blank" rel="noopener noreferrer">${esc(r.name || it.lkey)}</a>`;
+  $('l-meta').innerHTML = [
+    esc(r.district),
+    r.rank != null ? `<span class="rank">${esc(REVIEWER)} rank ${r.rank}</span>` : '<span style="color:#555">unranked</span>',
+    isNaN(parseFloat(r.night)) ? `<span style="color:#e67e22">${esc(r.night || 'no price')}</span> · ${esc(r.retrieved)}`
+                               : `<b>$${esc(r.night)}</b>/night · $${esc(r.total)} total`,
+    r.room ? `Room: <b>${esc(r.room)}</b>` : '',
+    r.deals ? `Deals: ${esc(r.deals)}` : '',
+    r.dealScan ? `<span class="dealnote">Deal scan ${esc(r.dealScan)}</span>` : '',
+    status ? `<span class="status ${status}">${status}</span>` : '',
+    detailLines(r).join('<br>'),
+    ratesLine(it.lkey),
+    reuseLine(it.lkey),
+  ].filter(Boolean).join('<br>');
+  $('l-notes').innerHTML = r.notes ? `<div class="notes">${esc(r.notes)}</div>` : '';
+
+  const p = it.photo;
+  const tags = [];
+  if (it.cls === 'unknown') tags.push('<span class="tag unsorted">unsorted</span>');
+  if (it.cls === 'other') tags.push('<span class="tag nonroom">non-room</span>');
+  if (p.room) tags.push(`<span class="tag">${esc(p.room)}</span>`);
+  const copyOf = (COPIES[it.pk] || []).filter(pk => pk !== it.pk);
+  const copyRooms = new Set(copyOf.map(pk => pk.split('|')[0]).filter(k => k !== it.lkey));
+  const copyNote = !copyOf.length ? '' : `<div class="reuse">⧉ Same picture ${copyRooms.size
+    ? `in ${copyRooms.size} other room type${copyRooms.size === 1 ? '' : 's'} of this hotel` : 'uploaded again in this listing'}: shown once, your mark applies to every copy</div>`;
+  $('p-info').innerHTML = `Photo ${it.i + 1} / ${it.n} ${tags.join('')}<br><span id="p-label">${esc(p.label)}</span>` + copyNote
+    + (reusedIn.length ? `<div class="reuse">⧉ This photo is also in: ${reusedIn.map(k => jumpLink(k)).join(', ')}</div>` : '')
+    + (p.flag ? `<div class="flagnote">⚑ ${esc(p.flag)}<br>2 (dislike) accepts the flag; 1 or seen overrules it.</div>` : '');
+
+  // filmstrip: this listing's photos in listing order
+  $('strip').innerHTML = shownPhotos(it.lkey).map(({p: sp}) => {
+    const pk = it.lkey + '|' + sp.id, sm = MARKS[pk];
+    const cls = [sm === 'like' ? 'like' : sm === 'dislike' ? 'dislike' : (sm || viewed.has(pk)) ? 'seen' : '', pk === it.pk ? 'cur' : ''].join(' ');
+    return `<img class="${cls}" src="${esc(sp.thumb)}" data-pk="${esc(pk)}" referrerpolicy="no-referrer" loading="lazy">`;
+  }).join('');
+  $('strip').querySelector('.cur')?.scrollIntoView({block: 'nearest', inline: 'center'});
+
+  for (let k = 1; k <= 3; k++) { const n = items[pos + k]; if (n) { const im = new Image(); im.referrerPolicy = 'no-referrer'; im.src = n.photo.url; } }
+}
+
+// ---------- events ----------
+$('strip').addEventListener('click', e => {
+  const pk = e.target.dataset?.pk; if (!pk) return;
+  const same = COPIES[pk] || [pk];   // a copy shown once under another room type: go to that one
+  const j = items.findIndex(it => same.includes(it.pk));
+  if (j >= 0) { pos = j; render(); }
+});
+$('region-sel').onchange = e => { store('region', e.target.value); setRegionUrl(); e.target.blur(); buildOrder(); nextUnreviewedFromStart(); };
+for (const id of ['pmin', 'pmax']) { $(id).addEventListener('input', onPriceInput); $(id).addEventListener('keydown', onPriceKey); }
+$('deals-chk').onchange = e => { e.target.blur(); buildOrder(); nextUnreviewedFromStart(); };
+$('picks-chk').onchange = e => { store('picks', e.target.checked ? '1' : '0'); e.target.blur(); buildOrder(items[pos]?.pk); render(); };
+$('refresh-btn').onclick = e => { e.target.blur(); reloadData(true); };
+$('unavail-chk').onchange = e => { store('unavail', e.target.checked ? '1' : '0'); e.target.blur(); buildOrder(items[pos]?.pk); render(); };
+$('show-sel').onchange = e => { store('show', e.target.value); e.target.blur(); buildOrder(items[pos]?.pk); render(); };
+function toggleMode() { mode = mode === 'sorted' ? 'random' : 'sorted'; store('mode', mode); buildOrder(items[pos]?.pk); render(); }
+function reshuffle() { if (mode !== 'random') return; seed = newSeed(); buildOrder(); nextUnreviewedFromStart(); }
+function nextUnreviewedFromStart() { pos = items.length - 1; nextUnreviewed(1); }
+function setPhotoView(v) { photoView = v; store('photoView', v); buildOrder(items[pos]?.pk); render(); }
+function cycleView() { setPhotoView(VIEW_ORDER[(VIEW_ORDER.indexOf(photoView) + 1) % VIEW_ORDER.length]); flash($('photo-view').selectedOptions[0].text); }
+$('photo-view').onchange = e => { setPhotoView(e.target.value); e.target.blur(); };
+$('mode-btn').onclick = toggleMode;
+$('shuffle-btn').onclick = reshuffle;
+$('bulk-btn').onclick = showBulk;
+$('clear-seen-btn').onclick = clearSeen;
+$('bulk-ok').onclick = doBulk;
+$('bulk-cancel').onclick = hideBulk;
+$('ws-badge').onclick = () => { if (confirm('Switch reviewer?')) pickReviewer(); };
+$('info-btn').onclick = () => { $('main').classList.toggle('info'); $('header').classList.toggle('open'); };
+$('act-prev').onclick = () => nextUnreviewed(-1);
+$('act-next').onclick = () => nextUnreviewed(1);
+$('act-like').onclick = () => mark('like');
+$('act-dislike').onclick = () => mark('dislike');
+$('act-listing').onclick = () => stepListing(1);
+
+document.addEventListener('keydown', e => {
+  if (!$('app').classList.contains('visible')) return;
+  if (e.metaKey || e.ctrlKey || e.altKey || e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+  if ($('bulk-overlay').classList.contains('visible')) {
+    if (e.key === 'Enter') doBulk(); else if (e.key === 'Escape') hideBulk();
+    e.preventDefault(); return;
+  }
+  if (e.shiftKey && e.code === 'Digit2') { e.preventDefault(); return rejectListing(); }   // e.key is '@' etc.
+  const actions = {
+    ']': () => nextUnreviewed(1), '[': () => nextUnreviewed(-1),
+    'ArrowRight': () => step(1), 'ArrowLeft': () => step(-1),
+    'ArrowDown': () => stepListing(1), 'ArrowUp': () => stepListing(-1),
+    '1': () => mark('like'), '2': () => mark('dislike'), '0': () => mark(null),
+    'r': cycleView, 'R': cycleView,
+    'b': showBulk, 'B': showBulk, 'm': toggleMode, 'M': toggleMode, 's': reshuffle, 'S': reshuffle,
+    'o': () => items[pos] && window.open(safeUrl(items[pos].row.url), '_blank', 'noopener,noreferrer'),
+  };
+  actions.O = actions.o;
+  if (actions[e.key]) { e.preventDefault(); actions[e.key](); }
+});
+
+// Touch on the photo: one-finger swipe left / right = ] / [ (next / previous unreviewed);
+// two-finger swipe left / right = → / ← (photo), up / down = ↓ / ↑ (listing);
+// a single tap cycles the photo's mark: like → dislike → clear.
+let swipe = null;
+function cycleMark() {
+  const it = items[pos]; if (!it) return;
+  const cur = OWN[it.pk];
+  mark(cur === 'like' ? 'dislike' : cur === 'dislike' ? null : 'like');
+}
+const touchMid = ts => [...ts].reduce((a, t) => [a[0] + t.clientX / ts.length, a[1] + t.clientY / ts.length], [0, 0]);
+$('stage').addEventListener('touchstart', e => {
+  if (!swipe) swipe = {fingers: 0, at: Date.now(), link: !!e.target.closest('a, [data-jump]')};
+  if (e.touches.length > swipe.fingers) Object.assign(swipe, {fingers: e.touches.length, from: touchMid(e.touches)});
+  swipe.to = touchMid(e.touches);
+}, {passive: true});
+$('stage').addEventListener('touchmove', e => {
+  e.preventDefault();   // no page scroll / pinch zoom on the photo
+  if (swipe && e.touches.length === swipe.fingers) swipe.to = touchMid(e.touches);
+}, {passive: false});
+$('stage').addEventListener('touchend', e => {
+  if (!swipe || e.touches.length) return;
+  const {fingers, from, to, at, link} = swipe;
+  swipe = null;
+  if ($('bulk-overlay').classList.contains('visible')) return;
+  const dx = to[0] - from[0], dy = to[1] - from[1], moved = Math.max(Math.abs(dx), Math.abs(dy));
+  if (fingers === 1 && moved < 10 && Date.now() - at < 400 && !link) { e.preventDefault(); return cycleMark(); }
+  if (moved < 40) return;
+  if (fingers === 1 && Math.abs(dx) > Math.abs(dy)) nextUnreviewed(dx < 0 ? 1 : -1);
+  else if (fingers === 2 && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1);
+  else if (fingers === 2) stepListing(dy < 0 ? 1 : -1);
+});
+$('stage').addEventListener('touchcancel', () => { swipe = null; });
+
+// Region (District) filter; &region=<name> in the URL picks it (deep link), else the last choice.
+function setRegions() {
+  const regions = [...new Set(ROWS.map(r => r.district).filter(Boolean))];
+  const want = $('region-sel').value || PARAMS.get('region') || store('region') || 'ALL';
+  $('region-sel').innerHTML = '<option value="ALL">All regions</option>' + regions.map(r => `<option>${esc(r)}</option>`).join('');
+  $('region-sel').value = want === 'ALL' || regions.includes(want) ? want : 'ALL';
+}
+function setRegionUrl() {
+  const u = new URL(location.href), r = $('region-sel').value;
+  if (r && r !== 'ALL') u.searchParams.set('region', r); else u.searchParams.delete('region');
+  history.replaceState(null, '', u);
+}
+
+// ---------- loading ----------
+async function readAll() {
+  const titles = await tabTitles();
+  if (!titles.includes(TAB)) throw new Error(`No tab “${TAB}” in the sheet`);
+  const ranges = [q(TAB) + '!A:ZZ'];
+  const hasPhotos = titles.includes(TAB + '_PHOTOS'), hasMarks = titles.includes(TAB + '_MARKS');
+  if (hasPhotos) ranges.push(q(TAB + '_PHOTOS') + '!A:L');
+  if (hasMarks) ranges.push(q(TAB + '_MARKS') + '!A:D');
+  const got = await batchGet(ranges);
+  const main = got.shift(), photos = hasPhotos ? got.shift() : [], marks = hasMarks ? got.shift() : [];
+  if (!hasMarks) flash(`No ${TAB}_MARKS tab: run sheet_review.py export`);
+  return {main, photos, marks};
+}
+function ingest({main, photos, marks}) {
+  ROWS = parseRows(main);
+  const P = parsePhotos(photos);
+  LISTINGS = P.listings; GROUPS = P.groups; TWINS = P.twins; setCopies();
+  REUSE = buildReuse(P.also);
+  parseMarks(marks);
+  for (const [, pk, m, at] of pending) { if (m === 'clear') { delete OWN[pk]; delete OWN_AT[pk]; } else { OWN[pk] = m; OWN_AT[pk] = at; } }
+  deriveMarks();
+}
+async function reloadData(userAsked) {
+  if (userAsked) flash('Re-reading the sheet…');
+  try {
+    ingest(await readAll());
+    setRegions(); setupPrice(); setupDeals();
+    buildOrder(items[pos]?.pk); render();
+    if (userAsked) flash(`${ROWS.filter(r => r.review_pick).length} rows ticked · ${Object.keys(LISTINGS).length} listings with photos`);
+  } catch (e) {
+    if (e instanceof AuthError) authLost(); else flash('Reload failed: ' + e.message);
+  }
+}
+
+function pickReviewer() {
+  show('reviewer-screen');
+  $('reviewer-btns').innerHTML = REVIEWERS.map(r => `<button data-r="${esc(r)}">${esc(r)}</button>`).join('');
+  $('reviewer-btns').onclick = e => {
+    const r = e.target.dataset?.r; if (!r) return;
+    try { localStorage.setItem('pa_reviewer', r); } catch (e) {}
+    location.reload();
+  };
+}
+
+(async function boot() {
+  const authed = handleAuth();
+  PARAMS = new URLSearchParams(location.search);
+  TAB = PARAMS.get('tab') || '';
+  if (!TAB) return show('tab-screen');
+  if (!authed) return show('auth-screen');
+  loadPending();
+  try { REVIEWER = localStorage.getItem('pa_reviewer') || ''; } catch (e) {}
+  if (!REVIEWERS.includes(REVIEWER)) return pickReviewer();
+  document.title = `Listing Photos · ${REVIEWER}`;
+  loading('Reading the sheet…');
+  let data;
+  try { data = await readAll(); }
+  catch (e) {
+    if (e instanceof AuthError) return show('auth-screen');
+    loading('Couldn’t read the sheet: ' + e.message);
+    return;
+  }
+  ingest(data);
+  show('app');
+  $('ws-badge').textContent = REVIEWER;
+  loadSeen();
+  mode = store('mode') || 'sorted';
+  seed = parseInt(store('seed') || '0') || newSeed();
+  photoView = PHOTO_VIEWS[store('photoView')] ? store('photoView') : 'rooms';
+  setRegions(); setRegionUrl();
+  const savedShow = store('show'); if (savedShow) $('show-sel').value = savedShow;
+  $('unavail-chk').checked = store('unavail') === '1';
+  $('picks-chk').checked = store('picks') !== '0';   // on by default
+  $('picks-label').textContent = REVIEWER + ' picks only';
+  setupPrice(); setupDeals();
+  buildOrder(store('pos'));
+  if (!store('pos') || PARAMS.get('region') || PARAMS.get('deals')) nextUnreviewedFromStart(); else render();
+  window.addEventListener('beforeunload', e => {
+    if (items[pos]) store('pos', items[pos].pk);
+    if (pending.length) { e.preventDefault(); e.returnValue = ''; }
+  });
+  document.addEventListener('visibilitychange', () => {   // leaving the page (phone): save now
+    if (document.visibilityState === 'hidden') { saveMarks(); if (scoreState === 'sheet: pending') writeScores(); }
+  });
+  if (pending.length) queueSave(true);   // marks left from before a sign-in
+})();
+</script>
+</body>
+</html>
