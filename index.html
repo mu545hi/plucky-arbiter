@@ -85,6 +85,12 @@ label.chk input { cursor: pointer; }
   position: absolute; top: 12px; right: 14px; padding: 3px 10px; border-radius: 12px;
   font-size: 12px; font-weight: 700; background: #2c2350; color: #d2b4de; display: none;
 }
+#flag-badge {
+  position: absolute; top: 12px; left: 14px; padding: 3px 10px; border-radius: 12px;
+  font-size: 12px; font-weight: 700; background: #6e4a0e; color: #fde3b0; display: none;
+}
+.flagnote { margin-top: 6px; padding: 6px 8px; border-radius: 6px; background: #3a2a10; color: #fde3b0; }
+.dealnote { color: #7ee2b8; }
 .reuse a { color: #d2b4de; cursor: pointer; text-decoration: underline dotted; }
 #empty { color: #666; font-size: 15px; text-align: center; line-height: 1.7; padding: 0 20px; }
 
@@ -194,6 +200,8 @@ label.chk input { cursor: pointer; }
   <select id="region-sel" class="wide" title="Region (the sheet's District). Deep link: &region=<name>"></select>
   <label class="chk wide" title="Only listings ticked in your Review column in the sheet">
     <input type="checkbox" id="picks-chk"> <span id="picks-label">picks only</span></label>
+  <label class="chk" id="deals-wrap" style="display:none" title="Only listings a deal scan (intrepid-tuning deal_scan.py) found on or after this date. Deep link: &deals=<YYYY-MM-DD>">
+    <input type="checkbox" id="deals-chk"> <span id="deals-label">new deals</span></label>
   <button id="refresh-btn" title="Re-read the sheet: new ticks, prices, photos">↻ sheet</button>
   <label class="chk wide" title="Show listings whose price is UNAVAILABLE (dropped out of the search) or missing">
     <input type="checkbox" id="unavail-chk"> include unavailable</label>
@@ -215,6 +223,7 @@ label.chk input { cursor: pointer; }
     <option value="bathroom">Bathrooms</option>
     <option value="additional">Additional photos</option>
     <option value="all">All photos</option>
+    <option value="flagged">Flagged by a photo rule</option>
   </select>
   <button id="mode-btn" title="M">Sorted</button>
   <button id="shuffle-btn" title="S" style="display:none">Reshuffle</button>
@@ -229,6 +238,7 @@ label.chk input { cursor: pointer; }
     <div id="banner"></div>
     <div id="mark-badge"></div>
     <div id="reuse-badge"></div>
+    <div id="flag-badge"></div>
     <div id="empty" style="display:none"></div>
   </div>
   <div id="side">
@@ -386,6 +396,7 @@ function listingKey(url) {   // fetch_photos.listing_key
 const ticked = v => ['true', 'x', 'yes', 'y', '1', '✓', '✔'].includes(String(v ?? '').trim().toLowerCase());
 
 let HDR = [];   // the workspace tab's header row (for the score write-back)
+const hasPicks = () => HDR.includes(`${REVIEWER} Review`);   // older tabs have no Review ticks: "picks only" is off
 function parseRows(values) {
   HDR = values[0] || [];
   const ix = h => HDR.indexOf(h);
@@ -410,6 +421,7 @@ function parseRows(values) {
       name: nameCol !== undefined ? String(r[nameCol] || '').trim() : '',
       district: cell('District'), room: cell('Room') || cell('Room [BOOK]'),
       total: cell('Total Price (USD)'), night, retrieved: cell('Last Retrieved'), deals: cell('Deals'),
+      dealScan: cell('Deal Scan'),
       details, rank: rankM ? parseFloat(rankM[1]) : null,
       review_pick: ticked(cell(`${REVIEWER} Review`)),
       notes: r.slice(HDR.length).map(c => String(c).trim()).filter(Boolean).join(' · '),
@@ -425,7 +437,7 @@ function parsePhotos(values) {
     const c = h => String(r[ix[h]] ?? '');
     const key = c('Key'); if (!key || !c('Photo ID')) continue;
     const p = {id: c('Photo ID'), url: c('URL'), thumb: c('Thumb') || c('URL'), label: c('Label'), room: c('Room'),
-               cls: c('Class') || 'unknown', bath: !!c('Bath')};
+               cls: c('Class') || 'unknown', bath: !!c('Bath'), flag: c('Flag')};
     (listings[key] ||= {photos: []}).photos.push(p);
     const pk = key + '|' + p.id;
     if (c('Group')) (groups[c('Group')] ||= []).push(pk);
@@ -548,11 +560,14 @@ function scheduleScores(now = false) {
   scoreTimer = setTimeout(writeScores, now ? 0 : SCORE_DELAY);
 }
 async function writeScores() {
-  const rankH = `${REVIEWER} Ranking`, reviewH = `${REVIEWER} Photo Review`;
+  const rankH = `${REVIEWER} Ranking`;
+  let reviewH = `${REVIEWER} Photo Review`;
   try {
     // Re-read the columns so a rating you typed in the sheet meanwhile is kept.
     const [values] = await batchGet([q(TAB) + '!A:ZZ']);
     const hdr = values[0] || [];
+    // Workspaces without "reviewers" (push_photo_scores.py) have "J Ranking" and a bare "Photo Review".
+    if (REVIEWER === 'J' && !hdr.includes(reviewH) && hdr.includes('Photo Review')) reviewH = 'Photo Review';
     const urlCol = URL_HEADERS.map(h => hdr.indexOf(h)).find(i => i >= 0);
     const rc = hdr.indexOf(rankH), vc = hdr.indexOf(reviewH);
     if (urlCol === undefined || rc < 0 || vc < 0) {
@@ -606,14 +621,28 @@ function listingStatus(lkey) {
 
 function nightPrice(r) { const v = parseFloat(r.night); return isNaN(v) ? Infinity : v; }
 
+// Deal scans (intrepid-tuning listing_photos/deal_scan.py) write "Deal Scan": "<YYYY-MM-DD>: <the deal>".
+// The "new deals" filter keeps rows a scan found on or after DEALS_SINCE (&deals=, else the latest scan).
+let DEALS_SINCE = '';
+const dealDate = r => (/^(\d{4}-\d{2}-\d{2}):/.exec(r.dealScan || '') || [, ''])[1];
+function setupDeals() {
+  $('picks-chk').parentElement.style.display = hasPicks() ? '' : 'none';
+  const dates = ROWS.map(dealDate).filter(Boolean).sort();
+  $('deals-wrap').style.display = dates.length ? '' : 'none';
+  const want = PARAMS.get('deals');
+  DEALS_SINCE = /^\d{4}-\d{2}-\d{2}$/.test(want || '') ? want : (dates[dates.length - 1] || '');
+  $('deals-label').textContent = `new deals since ${DEALS_SINCE.slice(5).replace('-', '/')}`;
+  if (want) $('deals-chk').checked = true;
+}
+
 // Photo view: rooms = room-labelled photos + Airbnb's "Listing" group, bathroom = bathroom photos,
 // additional = Airbnb's other unsorted groups, all = everything (Class / Bath come from
 // classify() and is_bathroom() in photo_rules.py, via the photos tab).
 const PHOTO_VIEWS = {
   rooms: p => p.cls === 'room' || p.cls === 'listing', bathroom: p => p.bath,
-  additional: p => p.cls === 'unknown', all: () => true,
+  additional: p => p.cls === 'unknown', all: () => true, flagged: p => !!p.flag,
 };
-const VIEW_ORDER = ['rooms', 'bathroom', 'additional', 'all'];
+const VIEW_ORDER = ['rooms', 'bathroom', 'additional', 'all', 'flagged'];
 let photoView = 'rooms';
 let hiddenCount = 0, unavailHidden = 0, copiesHidden = 0;
 
@@ -665,12 +694,14 @@ function onPriceKey(e) { if (e.key === 'Enter' || e.key === 'Escape') e.target.b
 function buildOrder(keepPk) {
   const show = $('show-sel').value, region = $('region-sel').value || 'ALL';
   const [plo, phi] = priceRange(), priceOn = plo !== null || phi !== null;
-  const withUnavail = $('unavail-chk').checked, picksOnly = $('picks-chk').checked;
+  const withUnavail = $('unavail-chk').checked, picksOnly = $('picks-chk').checked && hasPicks();
   const picked = new Set(ROWS.filter(x => x.review_pick).map(x => x.key));   // any of its rows ticked
+  const dealsOnly = $('deals-chk').checked;
   const seen = new Set(), rows = [], unavail = new Set();
   for (const r of ROWS) {
     if (region !== 'ALL' && r.district !== region) continue;
-    if (picksOnly && !picked.has(r.key)) continue;
+    if (dealsOnly) { if (dealDate(r) < DEALS_SINCE) continue; }   // the deal filter replaces "picks only"
+    else if (picksOnly && !picked.has(r.key)) continue;
     if (!withUnavail && !isFinite(nightPrice(r))) { unavail.add(r.key); continue; }
     if (priceOn) {
       const v = nightPrice(r);
@@ -882,7 +913,8 @@ function render() {
       + (photoView !== 'all' ? `<span class="wide-txt"> &nbsp;·&nbsp; ${hiddenCount} other photos hidden</span>` : '')
       + (copiesHidden ? `<span class="wide-txt"> &nbsp;·&nbsp; ${copiesHidden} repeat${copiesHidden === 1 ? '' : 's'} shown once</span>` : '')
       + (unavailHidden ? `<span class="wide-txt"> &nbsp;·&nbsp; ${unavailHidden} unavailable hidden</span>` : '')
-    : ($('picks-chk').checked && !ROWS.some(r => r.review_pick)
+    : $('deals-chk').checked ? `No listings with a deal found since ${esc(DEALS_SINCE)}`
+    : ($('picks-chk').checked && hasPicks() && !ROWS.some(r => r.review_pick)
         ? `No listings ticked in “${esc(REVIEWER)} Review” yet: tick some in the sheet, then ↻ sheet`
         : 'no photos');
   $('photo-view').value = photoView;
@@ -905,6 +937,7 @@ function render() {
       : `No photos for this tab yet.<br>Run <code>listing_photos/sheet_review.py export</code> in intrepid-tuning.`;
     ['l-name', 'l-meta', 'l-notes', 'p-info'].forEach(id => $(id).innerHTML = '');
     $('banner').className = ''; $('mark-badge').className = ''; $('reuse-badge').style.display = 'none';
+    $('flag-badge').style.display = 'none';
     return;
   }
   $('empty').style.display = 'none'; $('photo').style.display = '';
@@ -920,6 +953,8 @@ function render() {
   const reusedIn = REUSE.photos[it.pk] || [];
   $('reuse-badge').style.display = reusedIn.length ? 'block' : 'none';
   $('reuse-badge').textContent = `⧉ also in ${reusedIn.length} other listing${reusedIn.length === 1 ? '' : 's'}`;
+  $('flag-badge').style.display = it.photo.flag ? 'block' : 'none';
+  $('flag-badge').textContent = it.photo.flag ? '⚑ flagged: ' + it.photo.flag.split(' · ')[0] : '';
 
   const r = it.row;
   $('l-name').innerHTML = `<a href="${esc(safeUrl(r.url))}" target="_blank" rel="noopener noreferrer">${esc(r.name || it.lkey)}</a>`;
@@ -930,6 +965,7 @@ function render() {
                                : `<b>$${esc(r.night)}</b>/night · $${esc(r.total)} total`,
     r.room ? `Room: <b>${esc(r.room)}</b>` : '',
     r.deals ? `Deals: ${esc(r.deals)}` : '',
+    r.dealScan ? `<span class="dealnote">Deal scan ${esc(r.dealScan)}</span>` : '',
     status ? `<span class="status ${status}">${status}</span>` : '',
     detailLines(r).join('<br>'),
     ratesLine(it.lkey),
@@ -947,7 +983,8 @@ function render() {
   const copyNote = !copyOf.length ? '' : `<div class="reuse">⧉ Same picture ${copyRooms.size
     ? `in ${copyRooms.size} other room type${copyRooms.size === 1 ? '' : 's'} of this hotel` : 'uploaded again in this listing'}: shown once, your mark applies to every copy</div>`;
   $('p-info').innerHTML = `Photo ${it.i + 1} / ${it.n} ${tags.join('')}<br><span id="p-label">${esc(p.label)}</span>` + copyNote
-    + (reusedIn.length ? `<div class="reuse">⧉ This photo is also in: ${reusedIn.map(k => jumpLink(k)).join(', ')}</div>` : '');
+    + (reusedIn.length ? `<div class="reuse">⧉ This photo is also in: ${reusedIn.map(k => jumpLink(k)).join(', ')}</div>` : '')
+    + (p.flag ? `<div class="flagnote">⚑ ${esc(p.flag)}<br>2 (dislike) accepts the flag; 1 or seen overrules it.</div>` : '');
 
   // filmstrip: this listing's photos in listing order
   $('strip').innerHTML = shownPhotos(it.lkey).map(({p: sp}) => {
@@ -969,6 +1006,7 @@ $('strip').addEventListener('click', e => {
 });
 $('region-sel').onchange = e => { store('region', e.target.value); setRegionUrl(); e.target.blur(); buildOrder(); nextUnreviewedFromStart(); };
 for (const id of ['pmin', 'pmax']) { $(id).addEventListener('input', onPriceInput); $(id).addEventListener('keydown', onPriceKey); }
+$('deals-chk').onchange = e => { e.target.blur(); buildOrder(); nextUnreviewedFromStart(); };
 $('picks-chk').onchange = e => { store('picks', e.target.checked ? '1' : '0'); e.target.blur(); buildOrder(items[pos]?.pk); render(); };
 $('refresh-btn').onclick = e => { e.target.blur(); reloadData(true); };
 $('unavail-chk').onchange = e => { store('unavail', e.target.checked ? '1' : '0'); e.target.blur(); buildOrder(items[pos]?.pk); render(); };
@@ -1066,7 +1104,7 @@ async function readAll() {
   if (!titles.includes(TAB)) throw new Error(`No tab “${TAB}” in the sheet`);
   const ranges = [q(TAB) + '!A:ZZ'];
   const hasPhotos = titles.includes(TAB + '_PHOTOS'), hasMarks = titles.includes(TAB + '_MARKS');
-  if (hasPhotos) ranges.push(q(TAB + '_PHOTOS') + '!A:K');
+  if (hasPhotos) ranges.push(q(TAB + '_PHOTOS') + '!A:L');
   if (hasMarks) ranges.push(q(TAB + '_MARKS') + '!A:D');
   const got = await batchGet(ranges);
   const main = got.shift(), photos = hasPhotos ? got.shift() : [], marks = hasMarks ? got.shift() : [];
@@ -1086,7 +1124,7 @@ async function reloadData(userAsked) {
   if (userAsked) flash('Re-reading the sheet…');
   try {
     ingest(await readAll());
-    setRegions(); setupPrice();
+    setRegions(); setupPrice(); setupDeals();
     buildOrder(items[pos]?.pk); render();
     if (userAsked) flash(`${ROWS.filter(r => r.review_pick).length} rows ticked · ${Object.keys(LISTINGS).length} listings with photos`);
   } catch (e) {
@@ -1134,9 +1172,9 @@ function pickReviewer() {
   $('unavail-chk').checked = store('unavail') === '1';
   $('picks-chk').checked = store('picks') !== '0';   // on by default
   $('picks-label').textContent = REVIEWER + ' picks only';
-  setupPrice();
+  setupPrice(); setupDeals();
   buildOrder(store('pos'));
-  if (!store('pos') || PARAMS.get('region')) nextUnreviewedFromStart(); else render();
+  if (!store('pos') || PARAMS.get('region') || PARAMS.get('deals')) nextUnreviewedFromStart(); else render();
   window.addEventListener('beforeunload', e => {
     if (items[pos]) store('pos', items[pos].pk);
     if (pending.length) { e.preventDefault(); e.returnValue = ''; }

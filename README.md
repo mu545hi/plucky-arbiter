@@ -15,7 +15,7 @@ The tab name only goes in the link, so bookmark that link. `&region=<District>` 
 | Tab | Who writes it | What it holds |
 |---|---|---|
 | `<tab>` | the trackers; this page writes `<R> Ranking` and `<R> Photo Review` | listing rows; your `<R> Review` ticks choose what you see ("picks only") |
-| `<tab>_PHOTOS` (hidden) | intrepid-tuning `listing_photos/sheet_review.py export` | each listing's photo list, its room class, and reused-photo groups |
+| `<tab>_PHOTOS` (hidden) | intrepid-tuning `listing_photos/sheet_review.py export` | each listing's photo list, its room class, reused-photo groups and photo-rule flags |
 | `<tab>_MARKS` (hidden) | this page (append-only) | `Reviewer, Photo Key, Mark, At`; the last row for a photo wins |
 
 The scores are the same as `push_photo_scores.py`'s: liked 3, neutral 5, partial 7, rejected 10. A
@@ -25,6 +25,26 @@ when nothing is left to review.
 
 Back in intrepid-tuning, `sheet_review.py import --workspace <name>` folds the marks into
 `marks.<R>.json` for the compare apps.
+
+## Deal review
+
+intrepid-tuning's `listing_photos/deal_scan.py` writes a **Deal Scan** cell ("2026-11-01: Late Escape
+Deal -15%") on the rows of last-minute deals. Open the tab with `&deals=<date>` to review just the
+deals a scan found on or after that date (the **new deals** checkbox; without a date it means the
+latest scan):
+
+```
+https://mu545hi.github.io/plucky-arbiter/?tab=<workspace tab>&deals=2026-11-01
+```
+
+The listing details show the Deal Scan and **Review Flags** cells (`deal_reviews.py` writes the
+latter for deals: "45 reviews · bugs 5, dirty 3"). Photos a photo rule flags (`run_rule.py`, e.g.
+toilet and shower not separated) carry a ⚑ badge with the model's answer, and the **Flagged by a
+photo rule** view shows only those. Dislike (2) accepts a flag; like or seen overrules it.
+`sheet_review.py import` turns those marks into the rule's decisions.
+
+Tabs without "<R> Review" ticks (older workspaces) hide "picks only". Where the tab has a bare
+"Photo Review" column instead of "J Photo Review", J's notes go there.
 
 ## Use
 
