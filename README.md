@@ -40,7 +40,8 @@ https://mu545hi.github.io/plucky-arbiter/?tab=<workspace tab>&deals=2026-11-01
 The listing details show the Deal Scan and **Review Flags** cells (`deal_reviews.py` writes the
 latter for deals: "45 reviews · bugs 5, dirty 3"). Photos a photo rule flags (`run_rule.py`, e.g.
 toilet and shower not separated) carry a ⚑ badge with the model's answer, and the **Flagged by a
-photo rule** view shows only those. Dislike (2) accepts a flag; like or seen overrules it.
+photo rule** view shows only those. Dislike (2) accepts a flag and like (1) overrules it; a normal
+("seen") mark leaves it undecided.
 `sheet_review.py import` turns those marks into the rule's decisions.
 
 Tabs without "<R> Review" ticks (older workspaces) hide "picks only". Where the tab has a bare

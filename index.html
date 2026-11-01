@@ -297,7 +297,7 @@ label.chk input { cursor: pointer; }
       <tr><td><kbd>?</kbd></td><td>this help</td></tr>
     </table>
     <h4>Photo rule flags</h4>
-    <p style="margin:0">⚑ marks a photo a rule flagged, e.g. toilet and shower not separated. Dislike accepts the flag; like or normal overrules it.</p>
+    <p style="margin:0">⚑ marks a photo a rule flagged, e.g. toilet and shower not separated. Dislike accepts the flag; like overrules it. Normal (or a bulk mark) leaves it undecided.</p>
     <button id="help-close">Close</button>
   </div>
 </div>
@@ -1020,7 +1020,7 @@ function render() {
     ? `in ${copyRooms.size} other room type${copyRooms.size === 1 ? '' : 's'} of this hotel` : 'uploaded again in this listing'}: shown once, your mark applies to every copy</div>`;
   $('p-info').innerHTML = `Photo ${it.i + 1} / ${it.n} ${tags.join('')}<br><span id="p-label">${esc(p.label)}</span>` + copyNote
     + (reusedIn.length ? `<div class="reuse">⧉ This photo is also in: ${reusedIn.map(k => jumpLink(k)).join(', ')}</div>` : '')
-    + (p.flag ? `<div class="flagnote">⚑ ${esc(p.flag)}<br>2 (dislike) accepts the flag; 1 or seen overrules it.</div>` : '');
+    + (p.flag ? `<div class="flagnote">⚑ ${esc(p.flag)}<br>2 (dislike) accepts the flag; 1 (like) overrules it; seen leaves it undecided.</div>` : '');
 
   // filmstrip: this listing's photos in listing order. Rebuilt only when the listing or photo view
   // changes: rebuilding on every step made Safari reload the thumbnails, leaving empty slots.
