@@ -55,6 +55,7 @@ Tabs without "<R> Review" ticks (older workspaces) hide "picks only". Where the 
   - one finger, swipe left / right or tap the right / left third: next / previous unreviewed (`]` / `[`)
   - two fingers, the same: next / previous photo (`→` / `←`); two fingers up / down: listing (`↓` / `↑`)
   - one-finger tap in the middle third: cycle like → dislike → clear
+  - **?** (button or key) shows all the controls
   ⓘ shows the listing's details and the filters.
 - Your J / T choice is remembered in this browser. Tap the badge to switch reviewer.
 - The Google sign-in lasts an hour. Marks you make after it expires are kept in the browser and
