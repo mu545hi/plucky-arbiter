@@ -111,8 +111,6 @@ label.chk input { cursor: pointer; }
 #p-label { color: #ddd; }
 .tag { display: inline-block; background: #263238; color: #80cbc4; border-radius: 4px; padding: 1px 7px; font-size: 11px; margin-right: 4px; }
 .tag.match { background: #1a3d28; color: #4caf7d; }
-.keys { color: #666; font-size: 11px; line-height: 1.8; border-top: 1px solid #2a2a2a; padding-top: 10px; margin-top: auto; }
-.keys kbd { background: #2a2a2a; border: 1px solid #444; border-radius: 3px; padding: 0 5px; color: #bbb; font-family: inherit; }
 
 #strip {
   height: 92px; flex-shrink: 0; background: #151515; border-top: 1px solid #333;
@@ -138,7 +136,22 @@ label.chk input { cursor: pointer; }
   position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none;
   align-items: center; justify-content: center; z-index: 10;
 }
-#bulk-overlay.visible { display: flex; }
+#bulk-overlay.visible, #help-overlay.visible { display: flex; }
+#help-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none;
+  align-items: center; justify-content: center; z-index: 10;
+}
+#help-dialog {
+  background: #1c1c1c; border: 1px solid #444; border-radius: 10px; padding: 18px 22px; margin: 16px;
+  max-width: 460px; max-height: calc(100% - 32px); overflow-y: auto; font-size: 13px; color: #bbb; line-height: 1.6;
+}
+#help-dialog h3 { color: #eee; font-size: 15px; margin: 0 0 6px; }
+#help-dialog h4 { color: #888; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; margin: 12px 0 4px; }
+#help-dialog table { border-collapse: collapse; width: 100%; }
+#help-dialog td { padding: 3px 8px 3px 0; vertical-align: top; }
+#help-dialog td:first-child { white-space: nowrap; color: #eee; }
+#help-dialog kbd { background: #2a2a2a; border: 1px solid #444; border-radius: 3px; padding: 0 5px; color: #bbb; font-family: inherit; }
+#help-close { margin-top: 14px; width: 100%; }
 #bulk-dialog {
   background: #1c1c1c; border: 1px solid #444; border-radius: 10px; padding: 24px 28px; margin: 16px;
   display: flex; flex-direction: column; gap: 12px; text-align: center; max-width: 380px;
@@ -148,7 +161,6 @@ label.chk input { cursor: pointer; }
 
 @media (hover: none), (max-width: 820px) {
   #actions { display: flex; }
-  .keys { display: none; }
 }
 @media (max-width: 820px) {
   #header { padding: 6px 10px; gap: 6px; }
@@ -197,6 +209,7 @@ label.chk input { cursor: pointer; }
   <span id="progress">loading…</span>
   <span id="counts"></span>
   <button id="info-btn" title="Listing details and filters">ⓘ</button>
+  <button id="help-btn" title="Controls (?)" aria-haspopup="dialog">?</button>
   <select id="region-sel" class="wide" title="Region (the sheet's District). Deep link: &region=<name>"></select>
   <label class="chk wide" title="Only listings ticked in your Review column in the sheet">
     <input type="checkbox" id="picks-chk"> <span id="picks-label">picks only</span></label>
@@ -246,15 +259,6 @@ label.chk input { cursor: pointer; }
     <div id="l-meta" class="meta"></div>
     <div id="l-notes"></div>
     <div id="p-info" class="meta"></div>
-    <div class="keys">
-      <kbd>]</kbd> <kbd>[</kbd> next / prev unreviewed<br>
-      <kbd>→</kbd> <kbd>←</kbd> next / prev photo (all) &nbsp; <kbd>↓</kbd> <kbd>↑</kbd> listing<br>
-      <kbd>1</kbd> like &nbsp; <kbd>2</kbd> dislike &nbsp; <kbd>0</kbd> clear<br>
-      <kbd>⇧2</kbd> reject listing (clears its likes)<br>
-      <kbd>B</kbd> bulk mark seen &nbsp; <kbd>M</kbd> sorted/random &nbsp; <kbd>S</kbd> reshuffle<br>
-      <kbd>R</kbd> photo view &nbsp; <kbd>O</kbd> open listing<br>
-      Touch: swipe ← → unreviewed · two fingers ← → photo, ↑ ↓ listing · tap cycles like / dislike / clear
-    </div>
   </div>
 </div>
 <div id="strip"></div>
@@ -265,6 +269,37 @@ label.chk input { cursor: pointer; }
   <button id="act-listing" title="Next listing">⇣</button>
   <button id="act-next" title="Next unreviewed">›</button>
 </div>
+</div>
+
+<div id="help-overlay" role="dialog" aria-modal="true" aria-labelledby="help-title">
+  <div id="help-dialog">
+    <h3 id="help-title">Controls</h3>
+    <h4>Touch, on the photo</h4>
+    <table>
+      <tr><td>Swipe left / right</td><td>next / previous unreviewed photo</td></tr>
+      <tr><td>Tap right / left third</td><td>next / previous unreviewed photo</td></tr>
+      <tr><td>Tap the middle</td><td>cycle like → dislike → clear</td></tr>
+      <tr><td>Two fingers left / right</td><td>next / previous photo, reviewed or not (swipe or tap a side)</td></tr>
+      <tr><td>Two fingers up / down</td><td>next / previous listing</td></tr>
+    </table>
+    <p style="margin:6px 0 0">The bottom bar: ‹ › previous / next unreviewed, like, dislike, ⇣ next listing. ⓘ shows the listing's details and the filters.</p>
+    <h4>Keys</h4>
+    <table>
+      <tr><td><kbd>]</kbd> <kbd>[</kbd></td><td>next / previous unreviewed photo</td></tr>
+      <tr><td><kbd>→</kbd> <kbd>←</kbd></td><td>next / previous photo</td></tr>
+      <tr><td><kbd>↓</kbd> <kbd>↑</kbd></td><td>next / previous listing</td></tr>
+      <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>0</kbd></td><td>like / dislike (again: normal) / clear</td></tr>
+      <tr><td><kbd>⇧2</kbd></td><td>reject the listing (clears its likes)</td></tr>
+      <tr><td><kbd>B</kbd></td><td>mark the photos you've seen as normal</td></tr>
+      <tr><td><kbd>R</kbd></td><td>photo view (rooms, bathrooms, flagged…)</td></tr>
+      <tr><td><kbd>M</kbd> <kbd>S</kbd></td><td>sorted / random order, reshuffle</td></tr>
+      <tr><td><kbd>O</kbd></td><td>open the listing</td></tr>
+      <tr><td><kbd>?</kbd></td><td>this help</td></tr>
+    </table>
+    <h4>Photo rule flags</h4>
+    <p style="margin:0">⚑ marks a photo a rule flagged, e.g. toilet and shower not separated. Dislike accepts the flag; like or normal overrules it.</p>
+    <button id="help-close">Close</button>
+  </div>
 </div>
 
 <div id="bulk-overlay">
@@ -936,6 +971,7 @@ function render() {
       ? 'No photos in this view.<br>Change the filters, or tick listings in the sheet.'
       : `No photos for this tab yet.<br>Run <code>listing_photos/sheet_review.py export</code> in intrepid-tuning.`;
     ['l-name', 'l-meta', 'l-notes', 'p-info'].forEach(id => $(id).innerHTML = '');
+    $('strip').dataset.key = '';
     $('banner').className = ''; $('mark-badge').className = ''; $('reuse-badge').style.display = 'none';
     $('flag-badge').style.display = 'none';
     return;
@@ -986,12 +1022,18 @@ function render() {
     + (reusedIn.length ? `<div class="reuse">⧉ This photo is also in: ${reusedIn.map(k => jumpLink(k)).join(', ')}</div>` : '')
     + (p.flag ? `<div class="flagnote">⚑ ${esc(p.flag)}<br>2 (dislike) accepts the flag; 1 or seen overrules it.</div>` : '');
 
-  // filmstrip: this listing's photos in listing order
-  $('strip').innerHTML = shownPhotos(it.lkey).map(({p: sp}) => {
-    const pk = it.lkey + '|' + sp.id, sm = MARKS[pk];
-    const cls = [sm === 'like' ? 'like' : sm === 'dislike' ? 'dislike' : (sm || viewed.has(pk)) ? 'seen' : '', pk === it.pk ? 'cur' : ''].join(' ');
-    return `<img class="${cls}" src="${esc(sp.thumb)}" data-pk="${esc(pk)}" referrerpolicy="no-referrer" loading="lazy">`;
-  }).join('');
+  // filmstrip: this listing's photos in listing order. Rebuilt only when the listing or photo view
+  // changes: rebuilding on every step made Safari reload the thumbnails, leaving empty slots.
+  const stripKey = it.lkey + '|' + photoView;
+  if ($('strip').dataset.key !== stripKey) {
+    $('strip').dataset.key = stripKey;
+    $('strip').innerHTML = shownPhotos(it.lkey).map(({p: sp}) =>
+      `<img src="${esc(sp.thumb)}" data-pk="${esc(it.lkey + '|' + sp.id)}" referrerpolicy="no-referrer" decoding="async">`).join('');
+  }
+  for (const im of $('strip').children) {
+    const pk = im.dataset.pk, sm = MARKS[pk];
+    im.className = [sm === 'like' ? 'like' : sm === 'dislike' ? 'dislike' : (sm || viewed.has(pk)) ? 'seen' : '', pk === it.pk ? 'cur' : ''].join(' ');
+  }
   $('strip').querySelector('.cur')?.scrollIntoView({block: 'nearest', inline: 'center'});
 
   for (let k = 1; k <= 3; k++) { const n = items[pos + k]; if (n) { const im = new Image(); im.referrerPolicy = 'no-referrer'; im.src = n.photo.url; } }
@@ -1024,6 +1066,11 @@ $('clear-seen-btn').onclick = clearSeen;
 $('bulk-ok').onclick = doBulk;
 $('bulk-cancel').onclick = hideBulk;
 $('ws-badge').onclick = () => { if (confirm('Switch reviewer?')) pickReviewer(); };
+function showHelp() { $('help-overlay').classList.add('visible'); $('help-close').focus({preventScroll: true}); $('help-dialog').scrollTop = 0; }
+function hideHelp() { $('help-overlay').classList.remove('visible'); $('help-btn').blur(); }
+$('help-btn').onclick = showHelp;
+$('help-close').onclick = hideHelp;
+$('help-overlay').onclick = e => { if (e.target === $('help-overlay')) hideHelp(); };
 $('info-btn').onclick = () => { $('main').classList.toggle('info'); $('header').classList.toggle('open'); };
 $('act-prev').onclick = () => nextUnreviewed(-1);
 $('act-next').onclick = () => nextUnreviewed(1);
@@ -1034,6 +1081,11 @@ $('act-listing').onclick = () => stepListing(1);
 document.addEventListener('keydown', e => {
   if (!$('app').classList.contains('visible')) return;
   if (e.metaKey || e.ctrlKey || e.altKey || e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+  if ($('help-overlay').classList.contains('visible')) {
+    if (e.key === 'Escape' || e.key === '?' || e.key === 'Enter') { hideHelp(); e.preventDefault(); }
+    return;
+  }
+  if (e.key === '?') { e.preventDefault(); return showHelp(); }
   if ($('bulk-overlay').classList.contains('visible')) {
     if (e.key === 'Enter') doBulk(); else if (e.key === 'Escape') hideBulk();
     e.preventDefault(); return;
@@ -1053,8 +1105,9 @@ document.addEventListener('keydown', e => {
 });
 
 // Touch on the photo: one-finger swipe left / right = ] / [ (next / previous unreviewed);
-// two-finger swipe left / right = → / ← (photo), up / down = ↓ / ↑ (listing);
-// a single tap cycles the photo's mark: like → dislike → clear.
+// two-finger swipe left / right = → / ← (photo), up / down = ↓ / ↑ (listing).
+// Taps work the same by side: a tap on the left or right third = [ / ] (two fingers: ← / →),
+// and a one-finger tap in the middle third cycles the photo's mark: like → dislike → clear.
 let swipe = null;
 function cycleMark() {
   const it = items[pos]; if (!it) return;
@@ -1077,7 +1130,14 @@ $('stage').addEventListener('touchend', e => {
   swipe = null;
   if ($('bulk-overlay').classList.contains('visible')) return;
   const dx = to[0] - from[0], dy = to[1] - from[1], moved = Math.max(Math.abs(dx), Math.abs(dy));
-  if (fingers === 1 && moved < 10 && Date.now() - at < 400 && !link) { e.preventDefault(); return cycleMark(); }
+  if (moved < 10 && Date.now() - at < 400 && !link) {
+    e.preventDefault();
+    const box = $('stage').getBoundingClientRect(), x = (from[0] - box.left) / box.width;
+    const side = x < 1 / 3 ? -1 : x > 2 / 3 ? 1 : 0;
+    if (fingers === 1) return side ? nextUnreviewed(side) : cycleMark();
+    if (fingers === 2 && side) return step(side);
+    return;
+  }
   if (moved < 40) return;
   if (fingers === 1 && Math.abs(dx) > Math.abs(dy)) nextUnreviewed(dx < 0 ? 1 : -1);
   else if (fingers === 2 && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1);
