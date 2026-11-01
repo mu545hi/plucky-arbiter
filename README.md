@@ -2,7 +2,7 @@
 
 A listing-photo review page that runs from GitHub Pages: a static port of
 intrepid-tuning's `listing_photos/review_app.py`. You sign in with Google and the page reads and
-writes the trip-planning Google Sheet directly from your browser. There's no server.
+writes the trip-planning Google Sheet directly from your browser. There's no server. 
 
 ```
 https://mu545hi.github.io/plucky-arbiter/?tab=<workspace tab>
