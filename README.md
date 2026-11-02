@@ -28,6 +28,32 @@ when nothing is left to review.
 Back in intrepid-tuning, `sheet_review.py import --workspace <name>` folds the marks into
 `marks.<R>.json` for the compare apps.
 
+## Adhoc mode
+
+A read-only look at the rows ticked **"<R> Adhoc"** (it replaces intrepid-tuning's Mac-only
+`adhoc_app.py`). **Adhoc** in the header switches to it, or bookmark:
+
+```
+https://mu545hi.github.io/plucky-arbiter/?tab=<workspace tab>&adhoc=1
+https://mu545hi.github.io/plucky-arbiter/?tab=<workspace tab>&adhoc=1&order=Est.+Commute+(min)&desc=1
+```
+
+One listing at a time, in the order of a sheet column: `<R> Rate Rank` by default, lowest first, blanks
+last (a cell's first line, by its leading number). `&order=<column>` or the picker under ⓘ picks
+another column, and ↑ / ↓ reverses it (`&desc=1`). A Booking room's rate rows share its photos, so a
+room shows once, at its best-ordered rate; a picture repeated across a hotel's room types shows
+under the first of them. Each listing shows its name (a link), site, room, price per night and rate,
+`<R> Tier` / `Rate Rank` / `Value` / `Surplus`, `Est. Commute (min)` and `Commute Station`, Review
+Flags, a Deal Scan and the photo-rule ⚑ flags. Ticked rows whose listing has no photos in
+`<tab>_PHOTOS` yet are listed under the details (fetch them with `fetch_photos.py`, then
+`sheet_review.py export`).
+
+Nothing is marked or written to the sheet. Swipe left / right or `←` `→` between a listing's photos,
+up / down or `↑` `↓` between listings; tap the left / right third for the previous / next photo, the
+middle's upper / lower half for the previous / next listing; the filmstrip, the photo views (`R`) and
+the region menu work as in the review. ↻ sheet re-reads ticks and ranks. Like compare mode, it's
+only in the address: a plain review link still opens the review.
+
 ## Compare mode
 
 The price-aware shortlist's questions (intrepid-tuning's `compare_app_v2.py`, which this replaces)
@@ -97,6 +123,8 @@ Tabs without "<R> Review" ticks (older workspaces) hide "picks only". Where the 
 To test locally, run `python3 -m http.server 8000` and add `http://localhost:8000` and
 `http://localhost:8000/` to the same client.
 
+`node tests/adhoc_page.test.mjs` checks adhoc mode the same way (order, `&order=`, room dedupe, copy
+groups, touch, and that it sends nothing to the sheet).
 `node tests/compare_page.test.mjs` checks compare mode on a phone viewport against a mocked Sheets
 API (needs the `playwright` package and its Chromium; screenshots go to `tests/shots/`, gitignored).
 `tests/fixture.mjs` holds made-up listings; its queue rows were generated with intrepid-tuning's
