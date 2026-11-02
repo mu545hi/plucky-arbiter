@@ -159,6 +159,65 @@ label.chk input { cursor: pointer; }
 #bulk-count { font-size: 28px; font-weight: 800; color: #27ae60; }
 #bulk-dialog p { font-size: 13px; color: #888; line-height: 1.5; }
 
+/* ── Compare questions (compare mode) ── */
+#app.cmp #header > :not(.both):not(.cmp-only) { display: none !important; }
+#app:not(.cmp) .cmp-only, #app.cmp #main, #app.cmp #strip, #app.cmp #actions { display: none !important; }
+#cmp-btn { border-color: #6c3483; color: #d2b4de; font-weight: 700; }
+#cmp-progress { font-size: 12px; color: #888; }
+#cmp-progress b { color: #e67e22; }
+#cmp-view { flex: 1; display: none; flex-direction: column; min-height: 0; }
+#app.cmp #cmp-view { display: flex; }
+#cq-head { padding: 8px 12px; background: #161616; border-bottom: 1px solid #333; font-size: 13px; color: #ccc; line-height: 1.45; flex-shrink: 0; }
+#cq-head .pill { margin-right: 6px; }
+#cq-note { color: #aaa; margin-top: 2px; }
+.pill { display: inline-block; border-radius: 4px; padding: 0 7px; font-size: 11px; font-weight: 700; }
+.pill.air { background: #4a1f2a; color: #f5a3b5; } .pill.book { background: #1a2d4a; color: #85c1e9; }
+.pill.phase { background: #2c2350; color: #d2b4de; } .pill.region { background: #263238; color: #80cbc4; }
+#cq-sides { flex: 1; display: flex; min-height: 0; }
+.cq-side { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow-y: auto; }
+.cq-side + .cq-side { border-left: 2px solid #333; }
+.cq-photo { position: relative; background: #0b0b0b; aspect-ratio: 4 / 3; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: zoom-in; }
+.cq-photo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.cq-photo .cq-n { position: absolute; right: 6px; bottom: 6px; background: rgba(0,0,0,.65); color: #ddd; font-size: 11px; padding: 1px 6px; border-radius: 8px; }
+.cq-photo .cq-side-tag { position: absolute; left: 6px; top: 6px; background: rgba(0,0,0,.65); color: #eee; font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 8px; }
+.cq-photo .badge { position: absolute; left: 6px; bottom: 6px; border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 800; }
+.badge.like { background: #1e8449; color: #fff; } .badge.dislike { background: #b03a2e; color: #fff; }
+.cq-strip { display: flex; gap: 4px; padding: 5px 6px; overflow-x: auto; background: #151515; flex-shrink: 0; }
+.cq-strip img { height: 46px; width: 62px; object-fit: cover; border-radius: 3px; border: 2px solid transparent; opacity: .6; flex-shrink: 0; cursor: pointer; }
+.cq-strip img.like { border-color: #27ae60; opacity: .9; } .cq-strip img.dislike { border-color: #c0392b; opacity: .9; }
+.cq-strip img.cur { opacity: 1; outline: 2px solid #5dade2; outline-offset: 1px; }
+.cq-info { padding: 8px 10px; font-size: 12px; color: #999; line-height: 1.55; }
+.cq-info .nm a { color: #eee; font-weight: 700; font-size: 14px; text-decoration: none; }
+.cq-info b { color: #ddd; font-weight: 600; }
+.cq-info .price { color: #4caf7d; font-weight: 700; font-size: 14px; }
+.cq-info .reveal { color: #5dade2; text-decoration: underline dotted; cursor: pointer; }
+.cq-drop { margin-top: 6px; border-color: #7b241c; color: #f1948a; background: #2a1414; }
+#cq-buttons { display: grid; gap: 6px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); background: #1a1a1a; border-top: 1px solid #333; flex-shrink: 0; }
+#cq-buttons button { padding: 8px 6px; text-align: left; line-height: 1.3; white-space: normal; min-height: 64px; border-radius: 9px; touch-action: manipulation; }
+#cq-buttons .t { display: block; font-weight: 700; font-size: 13px; color: #eee; }
+#cq-buttons .k { color: #888; margin-right: 4px; }
+#cq-buttons .p { display: block; color: #aaa; font-size: 11px; margin-top: 2px; }
+#cq-buttons .o { display: block; font-size: 11px; margin-top: 2px; }
+#cq-buttons .left { border-color: #2a4466; } #cq-buttons .left .o { color: #85c1e9; }
+#cq-buttons .right { border-color: #2a6644; } #cq-buttons .right .o { color: #4caf7d; }
+#cq-buttons .either { border-color: #665a2a; } #cq-buttons .either .o { color: #d4b85a; }
+#cq-buttons button:active { background: #3a3a3a; }
+#cmp-done { flex: 1; overflow-y: auto; padding: 18px 16px 30px; display: none; font-size: 13px; color: #bbb; line-height: 1.5; }
+#cmp-done h2 { color: #4caf7d; font-size: 20px; margin-bottom: 6px; }
+#cmp-done h3 { color: #f0b27a; font-size: 13px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: .04em; }
+#cmp-done table { border-collapse: collapse; width: 100%; max-width: 900px; }
+#cmp-done td, #cmp-done th { padding: 4px 6px; border-bottom: 1px solid #222; text-align: left; vertical-align: top; font-size: 12px; }
+#cmp-done th { color: #777; font-weight: 600; }
+#cmp-done a { color: #85c1e9; text-decoration: none; }
+#cmp-done .status { display: block; color: #999; }
+#cmp-flag { margin: 10px 0; font-size: 15px; padding: 10px 18px; border-radius: 9px; background: #1a3d28; border-color: #2a6644; color: #4caf7d; font-weight: 700; }
+#cmp-flag:disabled { opacity: .5; }
+.pos { color: #4caf7d; } .neg { color: #f1948a; }
+#cmp-lb { position: fixed; inset: 0; background: rgba(0,0,0,.94); display: none; z-index: 12; align-items: center; justify-content: center; flex-direction: column; gap: 8px; touch-action: none; }
+#cmp-lb.visible { display: flex; }
+#cmp-lb img { max-width: 100vw; max-height: 86vh; object-fit: contain; }
+#cmp-lb-cap { color: #ccc; font-size: 13px; padding: 0 12px; text-align: center; }
+
 @media (hover: none), (max-width: 820px) {
   #actions { display: flex; }
 }
@@ -178,6 +237,13 @@ label.chk input { cursor: pointer; }
   #main.info #side { display: flex; }
   #strip { height: 64px; padding: 5px 8px; }
   #strip img { height: 52px; width: 70px; }
+  #cq-head { padding: 6px 10px; font-size: 12px; }
+  .cq-info { padding: 6px 7px; font-size: 11px; }
+  .cq-info .nm a { font-size: 12px; }
+  #cq-buttons { gap: 4px; padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); }
+  #cq-buttons button { padding: 6px 4px; min-height: 72px; }
+  #cq-buttons .t { font-size: 11.5px; }
+  #cq-buttons .p, #cq-buttons .o { font-size: 10px; }
 }
 </style>
 </head>
@@ -205,17 +271,24 @@ label.chk input { cursor: pointer; }
 
 <div id="app">
 <div id="header">
-  <span id="ws-badge" title="Switch reviewer"></span>
+  <span id="ws-badge" class="both" title="Switch reviewer"></span>
+  <button id="cmp-btn" class="both" title="Compare questions / photo review" style="display:none">Compare</button>
+  <span id="cmp-progress" class="cmp-only"></span>
+  <button id="cmp-undo" class="cmp-only" title="U: take back your last answer">Undo</button>
+  <select id="cmp-view-sel" class="cmp-only" title="R cycles: which photos to show">
+    <option value="rooms">Room + Listing</option><option value="bathroom">Bathrooms</option>
+    <option value="additional">Additional photos</option><option value="all">All photos</option>
+  </select>
   <span id="progress">loading…</span>
   <span id="counts"></span>
   <button id="info-btn" title="Listing details and filters">ⓘ</button>
-  <button id="help-btn" title="Controls (?)" aria-haspopup="dialog">?</button>
+  <button id="help-btn" class="both" title="Controls (?)" aria-haspopup="dialog">?</button>
   <select id="region-sel" class="wide" title="Region (the sheet's District). Deep link: &region=<name>"></select>
   <label class="chk wide" title="Only listings ticked in your Review column in the sheet">
     <input type="checkbox" id="picks-chk"> <span id="picks-label">picks only</span></label>
   <label class="chk" id="deals-wrap" style="display:none" title="Only listings a deal scan (intrepid-tuning deal_scan.py) found on or after this date. Deep link: &deals=<YYYY-MM-DD>">
     <input type="checkbox" id="deals-chk"> <span id="deals-label">new deals</span></label>
-  <button id="refresh-btn" title="Re-read the sheet: new ticks, prices, photos">↻ sheet</button>
+  <button id="refresh-btn" class="both" title="Re-read the sheet: new ticks, prices, photos, the next batch">↻ sheet</button>
   <label class="chk wide" title="Show listings whose price is UNAVAILABLE (dropped out of the search) or missing">
     <input type="checkbox" id="unavail-chk"> include unavailable</label>
   <select id="show-sel" class="wide" title="Which listings">
@@ -240,8 +313,8 @@ label.chk input { cursor: pointer; }
   </select>
   <button id="mode-btn" title="M">Sorted</button>
   <button id="shuffle-btn" title="S" style="display:none">Reshuffle</button>
-  <span id="flash"></span>
-  <span id="save"></span>
+  <span id="flash" class="both"></span>
+  <span id="save" class="both"></span>
   <button id="bulk-btn" title="B" disabled>Mark seen as normal</button>
   <button id="clear-seen-btn" class="wide" title="Forget which photos you've viewed (marks are unchanged)" disabled>Clear seen</button>
 </div>
@@ -269,7 +342,18 @@ label.chk input { cursor: pointer; }
   <button id="act-listing" title="Next listing">⇣</button>
   <button id="act-next" title="Next unreviewed">›</button>
 </div>
+<div id="cmp-view">
+  <div id="cq-head"><div id="cq-prompt"></div><div id="cq-note"></div></div>
+  <div id="cq-sides">
+    <div class="cq-side" id="cq-0"></div>
+    <div class="cq-side" id="cq-1"></div>
+  </div>
+  <div id="cq-buttons"></div>
+  <div id="cmp-done"></div>
 </div>
+</div>
+
+<div id="cmp-lb" role="dialog" aria-modal="true"><img id="cmp-lb-img" referrerpolicy="no-referrer" alt=""><div id="cmp-lb-cap"></div></div>
 
 <div id="help-overlay" role="dialog" aria-modal="true" aria-labelledby="help-title">
   <div id="help-dialog">
@@ -296,6 +380,15 @@ label.chk input { cursor: pointer; }
       <tr><td><kbd>O</kbd></td><td>open the listing</td></tr>
       <tr><td><kbd>?</kbd></td><td>this help</td></tr>
     </table>
+    <h4>Compare questions</h4>
+    <table>
+      <tr><td><kbd>1</kbd>–<kbd>5</kbd></td><td>answer (tiers: <kbd>1</kbd>–<kbd>3</kbd>), or tap a button at the bottom</td></tr>
+      <tr><td><kbd>⇧←</kbd> <kbd>⇧→</kbd></td><td>drop the left / right option from the ranking (or ✗ drop under it)</td></tr>
+      <tr><td><kbd>U</kbd></td><td>undo your last answer in this batch</td></tr>
+      <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>previous / next photo on both sides; tap a photo to enlarge</td></tr>
+      <tr><td><kbd>R</kbd></td><td>photo view</td></tr>
+    </table>
+    <p style="margin:6px 0 0">Answers are saved to the sheet as you go; the ranking is computed in intrepid-tuning (<code>compare_batch.py</code>) once the batch is done.</p>
     <h4>Photo rule flags</h4>
     <p style="margin:0">⚑ marks a photo a rule flagged, e.g. toilet and shower not separated. Dislike accepts the flag; like or normal overrules it.</p>
     <button id="help-close">Close</button>
@@ -322,6 +415,7 @@ label.chk input { cursor: pointer; }
 //                  "<R> Photo Review" are written back (as push_photo_scores.py does)
 //   <TAB>_PHOTOS   photo lists, written by intrepid-tuning's listing_photos/sheet_review.py export
 //   <TAB>_MARKS    your marks: an append-only log (Reviewer, Photo Key, Mark, At), last row wins
+//   <TAB>_COMPARE_QUEUE, <TAB>_COMPARE   compare mode's questions and answers (see "compare questions")
 const CLIENT_ID = "849477607564-p3jib8rsfvlv2fgsif1avafrjo4qac5k.apps.googleusercontent.com";
 const SHEET_ID  = "12AJpufiet0VtgXl0X4HcZg3lVERyRqWCOomwTTMHdcg";
 const SCOPE     = "https://www.googleapis.com/auth/spreadsheets";
@@ -459,6 +553,9 @@ function parseRows(values) {
       dealScan: cell('Deal Scan'),
       details, rank: rankM ? parseFloat(rankM[1]) : null,
       review_pick: ticked(cell(`${REVIEWER} Review`)),
+      compare_pick: ticked(cell(`${REVIEWER} Compare`)),
+      ranking: {tier: cell(`${REVIEWER} Tier`), rateRank: cell(`${REVIEWER} Rate Rank`),
+                value: cell(`${REVIEWER} Value`), surplus: cell(`${REVIEWER} Surplus`)},
       notes: r.slice(HDR.length).map(c => String(c).trim()).filter(Boolean).join(' · '),
     });
   });
@@ -1086,6 +1183,7 @@ document.addEventListener('keydown', e => {
     return;
   }
   if (e.key === '?') { e.preventDefault(); return showHelp(); }
+  if (CMP) return cmpKey(e);
   if ($('bulk-overlay').classList.contains('visible')) {
     if (e.key === 'Enter') doBulk(); else if (e.key === 'Escape') hideBulk();
     e.preventDefault(); return;
@@ -1158,21 +1256,298 @@ function setRegionUrl() {
   history.replaceState(null, '', u);
 }
 
+// ---------- compare questions (intrepid-tuning listing_photos/compare_batch.py) ----------
+// Python does all the ranking; this page only asks. Per tab:
+//   <TAB>_COMPARE_QUEUE  the current batch, written by compare_batch.py: one row per question with
+//                        the two options (Left / Right: listing keys; Left Rate / Right Rate: the
+//                        rates' keys), prices, the question and its answer buttons (ids, ranges and
+//                        labels from ranking_v2.levels()); "status" rows say how each region stands.
+//   <TAB>_COMPARE        your answers: an append-only log (Reviewer, Question ID, Answer, At).
+//                        Answer: a button id, "drop left" / "drop right", or "undo" (takes back that
+//                        question's answer); the last row of a question wins. "batch done" with the
+//                        batch (B<n>) as the question flags the batch for a scheduled run.
+// A reload resumes at the first question without an answer: the log is the state.
+let QUEUE = [], STATUS = [], BATCH = '', HAS_QUEUE = false, CMP_LOG = [], cmpPending = [], CMP = false;
+let cmpQ = null, cmpIdx = [0, 0], cmpPh = [[], []], cmpReveal = false, cmpViewName = 'rooms', cmpLb = null;
+function parseQueue(values) {
+  HAS_QUEUE = !!values;
+  const hdr = (values || [])[0] || [], ix = Object.fromEntries(hdr.map((h, i) => [h, i]));
+  QUEUE = []; STATUS = []; BATCH = '';
+  for (const r of (values || []).slice(1)) {
+    const c = h => String(r[ix[h]] ?? '');
+    if (c('Reviewer') !== REVIEWER) continue;
+    BATCH = c('Batch') || BATCH;
+    if (c('Phase') === 'status') { STATUS.push({region: c('Region'), text: c('Prompt')}); continue; }
+    if (!c('Question ID')) continue;
+    let buttons = [];
+    try { buttons = JSON.parse(c('Buttons') || '[]'); } catch (e) {}
+    QUEUE.push({id: c('Question ID'), region: c('Region'), phase: c('Phase'), left: c('Left'), right: c('Right'),
+                leftRate: c('Left Rate'), rightRate: c('Right Rate'), leftPrice: c('Left Price'), rightPrice: c('Right Price'),
+                prompt: c('Prompt'), note: c('Note'), buttons, hide: !!c('Hide Prices')});
+  }
+}
+function parseCmpLog(values) { CMP_LOG = (values || []).slice(1).map(r => r.map(x => String(x ?? ''))); }
+const loadCmpPending = () => { try { cmpPending = JSON.parse(localStorage.getItem('pa_cmp_pending|' + TAB) || '[]'); } catch (e) {} };
+const saveCmpPending = () => { try { localStorage.setItem('pa_cmp_pending|' + TAB, JSON.stringify(cmpPending)); } catch (e) {} };
+
+// The standing answers (compare_batch.fold_log): last row per question wins, "undo" clears it.
+function cmpState() {
+  const ids = new Set(QUEUE.map(x => x.id)), ans = {}, order = [];
+  let flagged = false;
+  for (const [rv, id, a] of [...CMP_LOG, ...cmpPending]) {
+    if (rv !== REVIEWER) continue;
+    if (a === 'batch done') { if (id === BATCH) flagged = true; continue; }
+    if (!ids.has(id) || !a) continue;
+    const k = order.indexOf(id); if (k >= 0) order.splice(k, 1);
+    if (a === 'undo') delete ans[id]; else { ans[id] = a; order.push(id); }
+  }
+  const dropped = new Set();
+  for (const id of order) if (ans[id].startsWith('drop ')) { const x = QUEUE.find(y => y.id === id); dropped.add(ans[id] === 'drop left' ? x.left : x.right); }
+  const skipped = x => !ans[x.id] && (dropped.has(x.left) || dropped.has(x.right));   // an option you dropped
+  const open = QUEUE.filter(x => !ans[x.id] && !skipped(x));
+  return {ans, order, dropped, skipped, open, flagged};
+}
+let cmpSaving = false, cmpTimer = null;
+function queueCmpSave(flush) { clearTimeout(cmpTimer); cmpTimer = setTimeout(saveCmp, flush ? 0 : 800); }
+async function saveCmp() {
+  if (cmpSaving || !cmpPending.length) return;
+  cmpSaving = true;
+  const batch = cmpPending.slice();
+  showSave('saving…');
+  try {
+    await appendRows(TAB + '_COMPARE', batch);
+    CMP_LOG.push(...batch);
+    cmpPending = cmpPending.slice(batch.length); saveCmpPending();
+    showSave('');
+  } catch (e) {
+    showSave(e instanceof AuthError ? 'signed out: answers kept, sign in again' : 'save failed: ' + e.message, true);
+    if (e instanceof AuthError) authLost(); else setTimeout(() => queueCmpSave(true), 15000);
+  } finally {
+    cmpSaving = false;
+    if (cmpPending.length && !$('save').classList.contains('err')) queueCmpSave();
+  }
+}
+function postCmp(id, answer) {
+  cmpPending.push([REVIEWER, id, answer, nowStamp()]);
+  saveCmpPending(); queueCmpSave(answer === 'batch done');
+  renderCmp();
+}
+function cmpAnswer(i) {
+  const x = cmpQ, b = x && x.buttons[i]; if (!b) return;
+  postCmp(x.id, b.id);
+  flash(`${x.id}: ${b.title}`);
+}
+function cmpDrop(side) {
+  const x = cmpQ; if (!x || x.phase === 'cancel') return;
+  const unit = side ? x.right : x.left;
+  postCmp(x.id, side ? 'drop right' : 'drop left');
+  flash(`Dropped ${(rowFor(unit, '')?.name || unit).slice(0, 34)} · U undoes`);
+}
+function cmpUndo() {
+  const S = cmpState(), id = S.order[S.order.length - 1];
+  if (!id) return flash('Nothing to undo in this batch');
+  postCmp(id, 'undo');
+  flash('Undone: ' + id);
+}
+
+// ---------- compare: rendering ----------
+function setCompare(on) {
+  CMP = !!on && (HAS_QUEUE || PARAMS.get('compare') === '1');
+  $('app').classList.toggle('cmp', CMP);
+  $('cmp-btn').style.display = HAS_QUEUE || CMP ? '' : 'none';
+  $('cmp-btn').textContent = CMP ? 'Photos' : 'Compare';
+  const u = new URL(location.href);
+  if (CMP) u.searchParams.set('compare', '1'); else u.searchParams.delete('compare');
+  history.replaceState(null, '', u);
+  document.title = `${CMP ? 'Compare' : 'Listing Photos'} · ${REVIEWER}`;
+  cmpQ = null;
+  if (CMP) renderCmp(); else render();
+}
+const rateKeyOf = r => { const m = /[?&]unit=([^&#]+)/.exec(r.url || ''); return m ? 'book:' + decodeURIComponent(m[1]) : r.key; };
+function rowFor(unit, rate) { return (rate && ROWS.find(r => rateKeyOf(r) === rate)) || ROWS.find(r => r.key === unit); }
+function cmpPhotos(unit) {
+  const all = LISTINGS[unit]?.photos || [], keep = PHOTO_VIEWS[cmpViewName] || PHOTO_VIEWS.rooms;
+  let ps = all.filter(p => keep(p));
+  if (!ps.length) ps = all;   // e.g. a hotel whose photos aren't sorted into rooms
+  const shown = new Set();
+  return ps.filter(p => { const g = COPIES[unit + '|' + p.id]; if (!g) return true; if (shown.has(g[0])) return false; shown.add(g[0]); return true; })
+    .map((p, i) => ({p, i, r: MARKS[unit + '|' + p.id] === 'like' ? 0 : MARKS[unit + '|' + p.id] === 'dislike' ? 2 : 1}))
+    .sort((a, b) => a.r - b.r || a.i - b.i).map(x => x.p);   // liked first, disliked last (compare_app_v2)
+}
+const money = v => v === '' || v == null || isNaN(+v) ? '—' : '$' + Math.round(+v);
+function rateText(r) {
+  const d = r?.details || {}, free = d['Free Cancellation'];
+  if (!r || r.key?.startsWith('air:')) return '';
+  return `${esc(d['Meal Plan'] || 'room only')}, ${free === 'yes' ? 'free cancellation' : free === 'no' ? 'non-refundable' : 'cancellation unknown'}`;
+}
+function cmpSideHtml(x, i) {
+  const unit = i ? x.right : x.left, rate = i ? x.rightRate : x.leftRate, price = i ? x.rightPrice : x.leftPrice;
+  const r = rowFor(unit, rate) || {key: unit, name: unit, url: '', details: {}};
+  const ps = cmpPhotos(unit), n = ps.length;
+  const st = LISTINGS[unit] ? verdict(unit)[0] : null;
+  const priceLine = x.hide && !cmpReveal ? `<span class="reveal" data-reveal="1">price hidden · show</span>`
+    : `<span class="price">${money(price)}</span> /night`;
+  const kind = unit.startsWith('air:') ? '<span class="pill air">Airbnb</span>' : '<span class="pill book">Booking</span>';
+  return `<div class="cq-photo" data-side="${i}">${n ? `<img referrerpolicy="no-referrer" alt="">` : '<span style="color:#666">no photos</span>'}`
+    + `<span class="cq-side-tag">${i ? 'Right' : 'Left'}</span><span class="badge"></span><span class="cq-n"></span></div>`
+    + `<div class="cq-strip" data-side="${i}">${ps.map((p, j) => `<img src="${esc(p.thumb)}" data-side="${i}" data-j="${j}" referrerpolicy="no-referrer" decoding="async" loading="lazy">`).join('')}</div>`
+    + `<div class="cq-info"><div class="nm"><a href="${esc(safeUrl(r.url))}" target="_blank" rel="noopener noreferrer">${esc(r.name || unit)}</a></div>`
+    + `${kind} ${r.room ? `<b>${esc(r.room)}</b>` : '<span>whole place</span>'}<br>`
+    + (rateText(r) ? rateText(r) + '<br>' : '') + priceLine
+    + (st ? ` · photos: <span class="status ${st === 'liked' ? 'liked' : st === 'rejected' ? 'rejected' : 'mixed'}">${st}</span>` : '')
+    + (detailLines(r).length ? '<br>' + detailLines(r).join('<br>') : '')
+    + (x.phase !== 'cancel' ? `<br><button class="cq-drop" data-drop="${i}">✗ drop ${i ? 'right' : 'left'}</button>` : '')
+    + `</div>`;
+}
+function paintSide(i) {
+  const ps = cmpPh[i], el = $('cq-' + i); if (!el) return;
+  const j = Math.min(cmpIdx[i], Math.max(ps.length - 1, 0)), p = ps[j];
+  const img = el.querySelector('.cq-photo img');
+  if (img && p && img.dataset.src !== p.url) { img.src = p.url; img.dataset.src = p.url; }
+  const unit = i ? cmpQ.right : cmpQ.left, m = p && MARKS[unit + '|' + p.id];
+  const badge = el.querySelector('.cq-photo .badge');
+  badge.className = 'badge ' + (m === 'like' || m === 'dislike' ? m : ''); badge.textContent = m === 'like' ? '♥' : m === 'dislike' ? '✗' : '';
+  badge.style.display = m === 'like' || m === 'dislike' ? '' : 'none';
+  el.querySelector('.cq-n').textContent = ps.length ? `${j + 1} / ${ps.length}` : '';
+  for (const t of el.querySelectorAll('.cq-strip img')) {
+    const tp = ps[+t.dataset.j], tm = tp && MARKS[unit + '|' + tp.id];
+    t.className = [tm === 'like' || tm === 'dislike' ? tm : '', +t.dataset.j === j ? 'cur' : ''].join(' ');
+  }
+  el.querySelector('.cq-strip img.cur')?.scrollIntoView({block: 'nearest', inline: 'center'});
+  const nx = ps[j + 1]; if (nx) { const im = new Image(); im.referrerPolicy = 'no-referrer'; im.src = nx.url; }
+}
+function cmpStep(d, side) {
+  for (const i of side === undefined ? [0, 1] : [side]) {
+    const n = cmpPh[i].length; if (!n) continue;
+    cmpIdx[i] = (cmpIdx[i] + d + n) % n; paintSide(i);
+  }
+}
+function renderCmp() {
+  if (!CMP) return;
+  const S = cmpState(), x = S.open[0] || null;
+  const total = QUEUE.length, done = total - S.open.length;
+  $('cmp-progress').innerHTML = total ? `Batch ${esc(BATCH)} · <b>${Math.min(done + 1, total)}</b> / ${total}` + (S.dropped.size ? ` · ${S.dropped.size} dropped` : '') : `Batch ${esc(BATCH || '—')}`;
+  $('cmp-undo').disabled = !S.order.length;
+  $('cmp-view-sel').value = cmpViewName;
+  const showQ = !!x;
+  for (const id of ['cq-head', 'cq-sides', 'cq-buttons']) $(id).style.display = showQ ? '' : 'none';
+  $('cmp-done').style.display = showQ ? 'none' : 'block';
+  if (!showQ) { cmpQ = null; return renderCmpDone(S); }
+  if (!cmpQ || cmpQ.id !== x.id) {   // a new question: rebuild both sides
+    cmpQ = x; cmpIdx = [0, 0]; cmpReveal = false;
+    cmpPh = [cmpPhotos(x.left), cmpPhotos(x.right)];
+    $('cq-prompt').innerHTML = `<span class="pill region">${esc(x.region)}</span><span class="pill phase">${esc(x.phase)}</span>${esc(x.prompt)}`;
+    $('cq-note').textContent = x.note || '';
+    $('cq-0').innerHTML = cmpSideHtml(x, 0); $('cq-1').innerHTML = cmpSideHtml(x, 1);
+    $('cq-0').scrollTop = $('cq-1').scrollTop = 0;
+    $('cq-buttons').style.gridTemplateColumns = `repeat(${x.buttons.length || 1}, 1fr)`;
+    $('cq-buttons').innerHTML = x.buttons.map((b, i) => `<button class="${esc(b.side)}" data-ans="${i}"><span class="t"><span class="k">${esc(b.key || i + 1)}</span>${esc(b.title)}</span>`
+      + `<span class="p">${nowrapMoney(esc(b.range || ''))}</span>${b.pick ? `<span class="o">${esc(b.pick)}</span>` : ''}</button>`).join('');
+  }
+  paintSide(0); paintSide(1);
+}
+const nowrapMoney = h => h.replace(/[−+±]?\$\d+/g, m => `<span style="white-space:nowrap">${m}</span>`);   // "−$60" stays whole
+function renderCmpDone(S) {
+  const regions = [...new Set([...QUEUE.map(x => x.region), ...STATUS.map(x => x.region)])];
+  const num = v => v === '' || isNaN(+v) ? null : +v;
+  const signedM = v => v == null ? '—' : (v >= 0 ? '+' : '−') + '$' + Math.abs(Math.round(v));
+  const tables = regions.map(reg => {
+    const rows = ROWS.filter(r => r.compare_pick && r.district === reg)
+      .sort((a, b) => (num(b.ranking.tier) ?? -1) - (num(a.ranking.tier) ?? -1) || (num(a.ranking.rateRank) ?? 1e9) - (num(b.ranking.rateRank) ?? 1e9));
+    if (!rows.length) return '';
+    return `<h3>${esc(reg)}</h3><table><tr><th>Tier</th><th>Rank</th><th>Option</th><th>Rate</th><th>/night</th><th>Value</th><th>Surplus</th></tr>`
+      + rows.map(r => { const s = num(r.ranking.surplus);
+          return `<tr><td>${esc(r.ranking.tier || '—')}</td><td>${esc(r.ranking.rateRank || '—')}</td>`
+            + `<td><a href="${esc(safeUrl(r.url))}" target="_blank" rel="noopener noreferrer">${esc(r.name)}</a>${r.room ? `<br><span style="color:#777">${esc(r.room)}</span>` : ''}</td>`
+            + `<td>${rateText(r) || '—'}</td><td>${money(r.night)}</td><td>${money(r.ranking.value)}</td>`
+            + `<td class="${s == null ? '' : s >= 0 ? 'pos' : 'neg'}">${signedM(s)}</td></tr>`; }).join('') + '</table>';
+  }).join('');
+  const answered = Object.keys(S.ans).length;
+  const head = !HAS_QUEUE ? `<h2 style="color:#e67e22">No comparison questions yet</h2><p>Run <code>listing_photos/compare_batch.py --workspace &lt;name&gt; --reviewer ${esc(REVIEWER)}</code> in intrepid-tuning (or <code>sheet_review.py export</code>) after ticking rows in “${esc(REVIEWER)} Compare”.</p>`
+    : QUEUE.length ? `<h2>Batch done: ranking runs next</h2><p>${answered} of ${QUEUE.length} questions answered in batch ${esc(BATCH)}${S.dropped.size ? `, ${S.dropped.size} option${S.dropped.size === 1 ? '' : 's'} dropped` : ''}. `
+        + `intrepid-tuning's <code>compare_batch.py</code> ranks them and writes the next batch; press ↻ sheet once it has run. U takes back your last answer until then.</p>`
+        + `<button id="cmp-flag" ${S.flagged ? 'disabled' : ''}>${S.flagged ? '✓ Flagged done' : 'Batch done'}</button>`
+        + `<p style="color:#777">${S.flagged ? 'A scheduled run (compare_batch.py --if-done) or a cloud session can pick it up.' : '“Batch done” leaves a flag in the sheet for a scheduled run to pick up.'}</p>`
+    : `<h2>Nothing to ask in batch ${esc(BATCH || '—')}</h2><p>Every region below is settled at today's prices, or has nothing to compare.</p>`;
+  $('cmp-done').innerHTML = head
+    + (STATUS.length ? `<h3>Regions</h3>${STATUS.map(x => `<span class="status">${esc(x.text)}</span>`).join('')}` : '')
+    + (tables ? `<h3 style="color:#888">Ranking as it stands (“${esc(REVIEWER)} Tier”, “Rate Rank”, “Value”, “Surplus”)</h3>` + tables : '');
+}
+function openCmpLb(side) { if (!cmpPh[side].length) return; cmpLb = side; paintCmpLb(); $('cmp-lb').classList.add('visible'); }
+function paintCmpLb() {
+  const ps = cmpPh[cmpLb], j = cmpIdx[cmpLb], p = ps[j]; if (!p) return;
+  $('cmp-lb-img').src = p.url;
+  $('cmp-lb-cap').textContent = `${cmpLb ? 'Right' : 'Left'} · ${j + 1} / ${ps.length}${p.room || p.label ? ' · ' + (p.room || p.label) : ''}`;
+}
+function closeCmpLb() { cmpLb = null; $('cmp-lb').classList.remove('visible'); }
+function cmpKey(e) {
+  if (cmpLb !== null) {
+    if (e.key === 'Escape' || e.key === 'Enter') closeCmpLb();
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { cmpStep(e.key === 'ArrowRight' ? 1 : -1, cmpLb); paintCmpLb(); }
+    e.preventDefault(); return;
+  }
+  if (e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { e.preventDefault(); return cmpDrop(e.key === 'ArrowRight' ? 1 : 0); }
+  if (/^[1-9]$/.test(e.key) && cmpQ) { e.preventDefault(); return cmpAnswer(+e.key - 1); }
+  const act = {u: cmpUndo, U: cmpUndo, ArrowRight: () => cmpStep(1), ArrowLeft: () => cmpStep(-1),
+               r: cycleCmpView, R: cycleCmpView}[e.key];
+  if (act) { e.preventDefault(); act(); }
+}
+function setCmpView(v) { cmpViewName = v; store('cmpView', v); if (cmpQ) { cmpPh = [cmpPhotos(cmpQ.left), cmpPhotos(cmpQ.right)]; cmpIdx = [0, 0];
+  $('cq-0').innerHTML = cmpSideHtml(cmpQ, 0); $('cq-1').innerHTML = cmpSideHtml(cmpQ, 1); } renderCmp(); }
+function cycleCmpView() { const o = ['rooms', 'bathroom', 'additional', 'all']; setCmpView(o[(o.indexOf(cmpViewName) + 1) % o.length]); flash($('cmp-view-sel').selectedOptions[0].text); }
+$('cmp-btn').onclick = e => { e.target.blur(); setCompare(!CMP); };
+$('cmp-undo').onclick = e => { e.target.blur(); cmpUndo(); };
+$('cmp-view-sel').onchange = e => { e.target.blur(); setCmpView(e.target.value); };
+$('cq-buttons').addEventListener('click', e => { const b = e.target.closest('button[data-ans]'); if (b) { b.blur(); cmpAnswer(+b.dataset.ans); } });
+$('cmp-done').addEventListener('click', e => { if (e.target.id === 'cmp-flag' && BATCH) postCmp(BATCH, 'batch done'); });
+$('cq-sides').addEventListener('click', e => {
+  const t = e.target;
+  if (t.dataset?.reveal) { cmpReveal = true; $('cq-0').innerHTML = cmpSideHtml(cmpQ, 0); $('cq-1').innerHTML = cmpSideHtml(cmpQ, 1); return renderCmp(); }
+  if (t.dataset?.drop !== undefined) {
+    const i = +t.dataset.drop, name = rowFor(i ? cmpQ.right : cmpQ.left, i ? cmpQ.rightRate : cmpQ.leftRate)?.name || '';
+    if (confirm(`Drop ${name || (i ? 'the right option' : 'the left option')} from the ranking? (Undo takes it back.)`)) cmpDrop(i);
+    return;
+  }
+  if (t.closest('.cq-strip') && t.dataset?.j !== undefined) { cmpIdx[+t.dataset.side] = +t.dataset.j; return paintSide(+t.dataset.side); }
+  const ph = t.closest('.cq-photo'); if (ph) openCmpLb(+ph.dataset.side);
+});
+// Lightbox: swipe or tap the left / right third to step, tap the middle to close.
+let cmpSwipe = null;
+$('cmp-lb').addEventListener('touchstart', e => { cmpSwipe = {x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now()}; }, {passive: true});
+$('cmp-lb').addEventListener('touchmove', e => e.preventDefault(), {passive: false});
+$('cmp-lb').addEventListener('touchend', e => {
+  if (!cmpSwipe) return;
+  const t = e.changedTouches[0], dx = t.clientX - cmpSwipe.x, dy = t.clientY - cmpSwipe.y;
+  cmpSwipe = null; e.preventDefault();
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { cmpStep(dx < 0 ? 1 : -1, cmpLb); return paintCmpLb(); }
+  const x = t.clientX / window.innerWidth;
+  if (x < 1 / 3 || x > 2 / 3) { cmpStep(x > 2 / 3 ? 1 : -1, cmpLb); paintCmpLb(); } else closeCmpLb();
+});
+$('cmp-lb').addEventListener('click', e => {   // mouse
+  const x = e.clientX / window.innerWidth;
+  if (x < 1 / 3 || x > 2 / 3) { cmpStep(x > 2 / 3 ? 1 : -1, cmpLb); paintCmpLb(); } else closeCmpLb();
+});
+
 // ---------- loading ----------
 async function readAll() {
   const titles = await tabTitles();
   if (!titles.includes(TAB)) throw new Error(`No tab “${TAB}” in the sheet`);
   const ranges = [q(TAB) + '!A:ZZ'];
   const hasPhotos = titles.includes(TAB + '_PHOTOS'), hasMarks = titles.includes(TAB + '_MARKS');
+  const hasQueue = titles.includes(TAB + '_COMPARE_QUEUE'), hasLog = titles.includes(TAB + '_COMPARE');
   if (hasPhotos) ranges.push(q(TAB + '_PHOTOS') + '!A:L');
   if (hasMarks) ranges.push(q(TAB + '_MARKS') + '!A:D');
+  if (hasQueue) ranges.push(q(TAB + '_COMPARE_QUEUE') + '!A:O');
+  if (hasLog) ranges.push(q(TAB + '_COMPARE') + '!A:D');
   const got = await batchGet(ranges);
   const main = got.shift(), photos = hasPhotos ? got.shift() : [], marks = hasMarks ? got.shift() : [];
+  const queue = hasQueue ? got.shift() : null, log = hasLog ? got.shift() : [];
   if (!hasMarks) flash(`No ${TAB}_MARKS tab: run sheet_review.py export`);
-  return {main, photos, marks};
+  return {main, photos, marks, queue, log};
 }
-function ingest({main, photos, marks}) {
+function ingest({main, photos, marks, queue, log}) {
   ROWS = parseRows(main);
+  parseQueue(queue); parseCmpLog(log);
   const P = parsePhotos(photos);
   LISTINGS = P.listings; GROUPS = P.groups; TWINS = P.twins; setCopies();
   REUSE = buildReuse(P.also);
@@ -1186,7 +1561,9 @@ async function reloadData(userAsked) {
     ingest(await readAll());
     setRegions(); setupPrice(); setupDeals();
     buildOrder(items[pos]?.pk); render();
-    if (userAsked) flash(`${ROWS.filter(r => r.review_pick).length} rows ticked · ${Object.keys(LISTINGS).length} listings with photos`);
+    cmpQ = null; renderCmp();
+    if (userAsked) flash(CMP ? `Batch ${BATCH || '—'}: ${QUEUE.length} questions`
+                             : `${ROWS.filter(r => r.review_pick).length} rows ticked · ${Object.keys(LISTINGS).length} listings with photos`);
   } catch (e) {
     if (e instanceof AuthError) authLost(); else flash('Reload failed: ' + e.message);
   }
@@ -1235,14 +1612,18 @@ function pickReviewer() {
   setupPrice(); setupDeals();
   buildOrder(store('pos'));
   if (!store('pos') || PARAMS.get('region') || PARAMS.get('deals')) nextUnreviewedFromStart(); else render();
+  cmpViewName = PHOTO_VIEWS[store('cmpView')] ? store('cmpView') : 'rooms';
+  loadCmpPending();
+  setCompare(PARAMS.get('compare') === '1');   // the address decides: a photo-review bookmark stays one
   window.addEventListener('beforeunload', e => {
     if (items[pos]) store('pos', items[pos].pk);
-    if (pending.length) { e.preventDefault(); e.returnValue = ''; }
+    if (pending.length || cmpPending.length) { e.preventDefault(); e.returnValue = ''; }
   });
   document.addEventListener('visibilitychange', () => {   // leaving the page (phone): save now
-    if (document.visibilityState === 'hidden') { saveMarks(); if (scoreState === 'sheet: pending') writeScores(); }
+    if (document.visibilityState === 'hidden') { saveMarks(); saveCmp(); if (scoreState === 'sheet: pending') writeScores(); }
   });
   if (pending.length) queueSave(true);   // marks left from before a sign-in
+  if (cmpPending.length) queueCmpSave(true);
 })();
 </script>
 </body>
