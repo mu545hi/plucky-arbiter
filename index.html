@@ -218,8 +218,20 @@ label.chk input { cursor: pointer; }
 #cmp-lb img { max-width: 100vw; max-height: 86vh; object-fit: contain; }
 #cmp-lb-cap { color: #ccc; font-size: 13px; padding: 0 12px; text-align: center; }
 
+/* ── Adhoc look (adhoc mode) ── */
+#app.adhoc #header > :not(.both):not(.adh):not(.adh-only) { display: none !important; }
+#app:not(.adhoc) .adh-only, #app.adhoc #actions, #app.adhoc #cmp-btn { display: none !important; }
+#adh-btn { border-color: #1f618d; color: #85c1e9; font-weight: 700; }
+#adh-progress { font-size: 12px; color: #888; }
+#adh-progress b { color: #e67e22; }
+.adh-order { display: inline-block; background: #3a2a1a; color: #f0b27a; border-radius: 4px; padding: 1px 7px; font-weight: 700; }
+.adh-rank b { color: #f0b27a; }
+#adh-actions { display: none; flex-shrink: 0; gap: 6px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); background: #1a1a1a; border-top: 1px solid #333; }
+#adh-actions button { flex: 1; font-size: 15px; padding: 11px 0; border-radius: 9px; font-weight: 700; }
+
 @media (hover: none), (max-width: 820px) {
   #actions { display: flex; }
+  #app.adhoc #adh-actions { display: flex; }
 }
 @media (max-width: 820px) {
   #header { padding: 6px 10px; gap: 6px; }
@@ -235,6 +247,7 @@ label.chk input { cursor: pointer; }
     padding: 10px 12px; gap: 8px; display: none;
   }
   #main.info #side { display: flex; }
+  #app.adhoc #side { display: flex; max-height: 32vh; }
   #strip { height: 64px; padding: 5px 8px; }
   #strip img { height: 52px; width: 70px; }
   #cq-head { padding: 6px 10px; font-size: 12px; }
@@ -273,6 +286,8 @@ label.chk input { cursor: pointer; }
 <div id="header">
   <span id="ws-badge" class="both" title="Switch reviewer"></span>
   <button id="cmp-btn" class="both" title="Compare questions / photo review" style="display:none">Compare</button>
+  <button id="adh-btn" class="adh" title="Adhoc look: page through the rows ticked “Adhoc” / back to the photo review" style="display:none">Adhoc</button>
+  <span id="adh-progress" class="adh-only"></span>
   <span id="cmp-progress" class="cmp-only"></span>
   <button id="cmp-undo" class="cmp-only" title="U: take back your last answer">Undo</button>
   <select id="cmp-view-sel" class="cmp-only" title="R cycles: which photos to show">
@@ -281,9 +296,11 @@ label.chk input { cursor: pointer; }
   </select>
   <span id="progress">loading…</span>
   <span id="counts"></span>
-  <button id="info-btn" title="Listing details and filters">ⓘ</button>
+  <button id="info-btn" class="adh" title="Listing details and filters">ⓘ</button>
   <button id="help-btn" class="both" title="Controls (?)" aria-haspopup="dialog">?</button>
-  <select id="region-sel" class="wide" title="Region (the sheet's District). Deep link: &region=<name>"></select>
+  <select id="region-sel" class="wide adh" title="Region (the sheet's District). Deep link: &region=<name>"></select>
+  <select id="adh-order" class="wide adh-only" title="Order the listings by this column (lowest first, blanks last). Deep link: &order=<column>"></select>
+  <button id="adh-dir" class="wide adh-only" title="Reverse the order (blanks stay last). Deep link: &desc=1">↑ lowest first</button>
   <label class="chk wide" title="Only listings ticked in your Review column in the sheet">
     <input type="checkbox" id="picks-chk"> <span id="picks-label">picks only</span></label>
   <label class="chk" id="deals-wrap" style="display:none" title="Only listings a deal scan (intrepid-tuning deal_scan.py) found on or after this date. Deep link: &deals=<YYYY-MM-DD>">
@@ -304,7 +321,7 @@ label.chk input { cursor: pointer; }
     <span>–</span>
     <input type="number" id="pmax" min="0" step="5" inputmode="numeric">
   </div>
-  <select id="photo-view" title="R cycles: which photos to show">
+  <select id="photo-view" class="adh" title="R cycles: which photos to show">
     <option value="rooms">Room + Listing</option>
     <option value="bathroom">Bathrooms</option>
     <option value="additional">Additional photos</option>
@@ -341,6 +358,12 @@ label.chk input { cursor: pointer; }
   <button id="act-dislike">✗ Dislike</button>
   <button id="act-listing" title="Next listing">⇣</button>
   <button id="act-next" title="Next unreviewed">›</button>
+</div>
+<div id="adh-actions">
+  <button id="adh-prev-l" title="Previous listing (↑)">⇡</button>
+  <button id="adh-prev" title="Previous photo (←)">‹ photo</button>
+  <button id="adh-next" title="Next photo (→)">photo ›</button>
+  <button id="adh-next-l" title="Next listing (↓)">⇣</button>
 </div>
 <div id="cmp-view">
   <div id="cq-head"><div id="cq-prompt"></div><div id="cq-note"></div></div>
@@ -380,6 +403,16 @@ label.chk input { cursor: pointer; }
       <tr><td><kbd>O</kbd></td><td>open the listing</td></tr>
       <tr><td><kbd>?</kbd></td><td>this help</td></tr>
     </table>
+    <h4>Adhoc look (Adhoc in the header, &amp;adhoc=1)</h4>
+    <p style="margin:0 0 4px">The rows ticked “Adhoc” in the sheet, one listing at a time in the order of a column (“Rate Rank” by default: lowest first, blanks last). Nothing is marked or written.</p>
+    <table>
+      <tr><td>Swipe left / right, <kbd>→</kbd> <kbd>←</kbd></td><td>next / previous photo</td></tr>
+      <tr><td>Swipe up / down, <kbd>↓</kbd> <kbd>↑</kbd></td><td>next / previous listing</td></tr>
+      <tr><td>Tap right / left third</td><td>next / previous photo</td></tr>
+      <tr><td>Tap the middle, lower / upper half</td><td>next / previous listing</td></tr>
+      <tr><td><kbd>R</kbd> · <kbd>O</kbd></td><td>photo view · open the listing</td></tr>
+    </table>
+    <p style="margin:6px 0 0">ⓘ shows the region, the column to order by and its direction. ↻ sheet re-reads ticks and ranks.</p>
     <h4>Compare questions</h4>
     <table>
       <tr><td><kbd>1</kbd>–<kbd>5</kbd></td><td>answer (tiers: <kbd>1</kbd>–<kbd>3</kbd>), or tap a button at the bottom</td></tr>
@@ -554,6 +587,7 @@ function parseRows(values) {
       details, rank: rankM ? parseFloat(rankM[1]) : null,
       review_pick: ticked(cell(`${REVIEWER} Review`)),
       compare_pick: ticked(cell(`${REVIEWER} Compare`)),
+      adhoc_pick: ticked(cell(`${REVIEWER} Adhoc`)), raw: r,
       ranking: {tier: cell(`${REVIEWER} Tier`), rateRank: cell(`${REVIEWER} Rate Rank`),
                 value: cell(`${REVIEWER} Value`), surplus: cell(`${REVIEWER} Surplus`)},
       notes: r.slice(HDR.length).map(c => String(c).trim()).filter(Boolean).join(' · '),
@@ -1037,6 +1071,7 @@ let flashTimer;
 function flash(msg) { $('flash').textContent = msg; clearTimeout(flashTimer); flashTimer = setTimeout(() => $('flash').textContent = '', 2500); }
 
 function render() {
+  if (ADHOC) return renderAdhoc();
   const it = items[pos];
   if (it && !viewed.has(it.pk)) { viewed.add(it.pk); saveSeen(); }
   const totalElig = items.filter(eligible).length;
@@ -1138,12 +1173,15 @@ function render() {
 
 // ---------- events ----------
 $('strip').addEventListener('click', e => {
+  if (ADHOC) { const i = e.target.dataset?.ai; if (i != null) { adhPi = +i; renderAdhoc(); } return; }
   const pk = e.target.dataset?.pk; if (!pk) return;
   const same = COPIES[pk] || [pk];   // a copy shown once under another room type: go to that one
   const j = items.findIndex(it => same.includes(it.pk));
   if (j >= 0) { pos = j; render(); }
 });
-$('region-sel').onchange = e => { store('region', e.target.value); setRegionUrl(); e.target.blur(); buildOrder(); nextUnreviewedFromStart(); };
+$('region-sel').onchange = e => {
+  if (ADHOC) { setRegionUrl(); e.target.blur(); buildAdhoc(); return renderAdhoc(); }   // not remembered: the address keeps it
+  store('region', e.target.value); setRegionUrl(); e.target.blur(); buildOrder(); nextUnreviewedFromStart(); };
 for (const id of ['pmin', 'pmax']) { $(id).addEventListener('input', onPriceInput); $(id).addEventListener('keydown', onPriceKey); }
 $('deals-chk').onchange = e => { e.target.blur(); buildOrder(); nextUnreviewedFromStart(); };
 $('picks-chk').onchange = e => { store('picks', e.target.checked ? '1' : '0'); e.target.blur(); buildOrder(items[pos]?.pk); render(); };
@@ -1153,7 +1191,7 @@ $('show-sel').onchange = e => { store('show', e.target.value); e.target.blur(); 
 function toggleMode() { mode = mode === 'sorted' ? 'random' : 'sorted'; store('mode', mode); buildOrder(items[pos]?.pk); render(); }
 function reshuffle() { if (mode !== 'random') return; seed = newSeed(); buildOrder(); nextUnreviewedFromStart(); }
 function nextUnreviewedFromStart() { pos = items.length - 1; nextUnreviewed(1); }
-function setPhotoView(v) { photoView = v; store('photoView', v); buildOrder(items[pos]?.pk); render(); }
+function setPhotoView(v) { photoView = v; store('photoView', v); if (ADHOC) buildAdhoc(ADH[adhLi]?.r.key, true); else buildOrder(items[pos]?.pk); render(); }
 function cycleView() { setPhotoView(VIEW_ORDER[(VIEW_ORDER.indexOf(photoView) + 1) % VIEW_ORDER.length]); flash($('photo-view').selectedOptions[0].text); }
 $('photo-view').onchange = e => { setPhotoView(e.target.value); e.target.blur(); };
 $('mode-btn').onclick = toggleMode;
@@ -1184,6 +1222,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === '?') { e.preventDefault(); return showHelp(); }
   if (CMP) return cmpKey(e);
+  if (ADHOC) return adhKey(e);
   if ($('bulk-overlay').classList.contains('visible')) {
     if (e.key === 'Enter') doBulk(); else if (e.key === 'Escape') hideBulk();
     e.preventDefault(); return;
@@ -1228,6 +1267,15 @@ $('stage').addEventListener('touchend', e => {
   swipe = null;
   if ($('bulk-overlay').classList.contains('visible')) return;
   const dx = to[0] - from[0], dy = to[1] - from[1], moved = Math.max(Math.abs(dx), Math.abs(dy));
+  if (ADHOC) {   // one or two fingers alike; no marking
+    if (moved < 10 && Date.now() - at < 400 && !link) {
+      e.preventDefault();
+      const box = $('stage').getBoundingClientRect(), x = (from[0] - box.left) / box.width, y = (from[1] - box.top) / box.height;
+      return x < 1 / 3 ? adhPhoto(-1) : x > 2 / 3 ? adhPhoto(1) : adhListing(y < 0.5 ? -1 : 1);
+    }
+    if (moved < 40) return;
+    return Math.abs(dx) > Math.abs(dy) ? adhPhoto(dx < 0 ? 1 : -1) : adhListing(dy < 0 ? 1 : -1);
+  }
   if (moved < 10 && Date.now() - at < 400 && !link) {
     e.preventDefault();
     const box = $('stage').getBoundingClientRect(), x = (from[0] - box.left) / box.width;
@@ -1255,6 +1303,193 @@ function setRegionUrl() {
   if (r && r !== 'ALL') u.searchParams.set('region', r); else u.searchParams.delete('region');
   history.replaceState(null, '', u);
 }
+
+// ---------- adhoc look (replaces intrepid-tuning's listing_photos/adhoc_app.py) ----------
+// The rows ticked "<R> Adhoc", one listing at a time, in the order of a sheet column ("<R> Rate Rank"
+// by default, lowest first, blanks last; &order=<column>, &desc=1). A Booking room's rates share its
+// photos, so a room shows once, at its best-ordered rate. Read only: no marks, no "seen", no writes.
+let ADHOC = false, ADH = [], adhMissing = [], adhTicked = 0, adhLi = 0, adhPi = 0;
+let adhOrder = '', adhDesc = false;
+const cellOf = (r, col) => { const j = HDR.indexOf(col); return j >= 0 && j < (r.raw || []).length ? String(r.raw[j] ?? '').trim() : ''; };
+function orderValue(v) {   // adhoc_app.order_value: the first line's leading number, else its text; null when blank
+  const first = String(v ?? '').split('\n')[0].trim();
+  if (!first) return null;
+  const m = /^-?\d+(?:\.\d+)?/.exec(first.replace(/,/g, ''));
+  return m ? [0, parseFloat(m[0])] : [1, first.toLowerCase()];
+}
+function cmpTuple(a, b) {
+  for (let i = 0; i < a.length; i++) {
+    const x = a[i], y = b[i];
+    if (Array.isArray(x)) { const c = cmpTuple(x, y); if (c) return c; continue; }
+    if (x < y) return -1; if (x > y) return 1;
+  }
+  return 0;
+}
+function modeButtons() {
+  $('cmp-btn').style.display = HAS_QUEUE || CMP ? '' : 'none';
+  $('adh-btn').style.display = ADHOC || HDR.includes(`${REVIEWER} Adhoc`) ? '' : 'none';
+  $('adh-btn').textContent = ADHOC ? 'Photos' : 'Adhoc';
+}
+function setAdhoc(on) {
+  ADHOC = !!on;
+  if (ADHOC && CMP) { CMP = false; $('app').classList.remove('cmp'); }
+  $('app').classList.toggle('adhoc', ADHOC);
+  modeButtons();
+  const u = new URL(location.href);
+  if (ADHOC) { u.searchParams.set('adhoc', '1'); u.searchParams.delete('compare'); }
+  else for (const k of ['adhoc', 'order', 'desc']) u.searchParams.delete(k);
+  history.replaceState(null, '', u);
+  PARAMS = new URLSearchParams(u.search);
+  document.title = `${ADHOC ? 'Adhoc look' : 'Listing Photos'} · ${REVIEWER}`;
+  $('strip').dataset.key = ''; $('flash').textContent = '';
+  if (ADHOC) {
+    adhOrder = PARAMS.get('order') || `${REVIEWER} Rate Rank`; adhDesc = PARAMS.get('desc') === '1';
+    setAdhocOrders(); setAdhocRegions(); buildAdhoc(); renderAdhoc();
+  } else { setRegions(); setRegionUrl(); buildOrder(items[pos]?.pk); render(); }
+}
+function setAdhocOrders() {
+  const cols = [...new Set([adhOrder, ...HDR.filter(Boolean)])];
+  $('adh-order').innerHTML = cols.map(c => `<option>${esc(c)}</option>`).join('');
+  $('adh-order').value = adhOrder;
+  $('adh-dir').textContent = adhDesc ? '↓ highest first' : '↑ lowest first';
+}
+function setAdhocRegions() {
+  const regions = [...new Set(ROWS.filter(r => r.adhoc_pick).map(r => r.district).filter(Boolean))];
+  const want = PARAMS.get('region') || $('region-sel').value || 'ALL';
+  $('region-sel').innerHTML = '<option value="ALL">All regions</option>' + regions.map(r => `<option>${esc(r)}</option>`).join('');
+  $('region-sel').value = regions.includes(want) ? want : 'ALL';
+}
+function setAdhocUrl() {
+  const u = new URL(location.href);
+  u.searchParams.set('order', adhOrder);
+  if (adhDesc) u.searchParams.set('desc', '1'); else u.searchParams.delete('desc');
+  history.replaceState(null, '', u);
+  PARAMS = new URLSearchParams(u.search);
+}
+function buildAdhoc(keepKey, keepPhoto) {
+  const region = $('region-sel').value || 'ALL', best = new Map();
+  const ticked = ROWS.filter(r => r.adhoc_pick && (region === 'ALL' || r.district === region));
+  adhTicked = ticked.length;
+  ticked.forEach(r => {   // a room's rate rows: the best-ordered one represents it (ROWS keep the sheet's order)
+    const v = orderValue(cellOf(r, adhOrder)), k = [v === null ? 1 : 0, v || [0, 0], r.sheetRow];
+    const cur = best.get(r.key);
+    if (!cur || cmpTuple(k, cur.k) < 0) best.set(r.key, {k, r});
+  });
+  let list = [...best.values()].sort((a, b) => cmpTuple(a.k, b.k));
+  if (adhDesc) list = [...list.filter(x => !x.k[0]).reverse(), ...list.filter(x => x.k[0])];   // blanks stay last
+  const has = r => (LISTINGS[r.key]?.photos || []).length > 0;
+  adhMissing = list.filter(x => !has(x.r)).map(x => x.r);
+  const keep = PHOTO_VIEWS[photoView] || PHOTO_VIEWS.rooms, shownCopy = new Set();
+  ADH = list.filter(x => has(x.r)).map(({r}) => {
+    const all = LISTINGS[r.key].photos;
+    let ps = all.filter(p => keep(p)), viewAll = false;
+    if (!ps.length && photoView === 'rooms') { ps = all; viewAll = true; }   // photos not sorted into rooms
+    // Each picture once in this order (as in the review screen): a copy in an earlier room is skipped,
+    // unless every one of the room's photos is such a copy.
+    const fresh = ps.filter(p => { const g = COPIES[r.key + '|' + p.id]; if (!g) return true; if (shownCopy.has(g[0])) return false; shownCopy.add(g[0]); return true; });
+    return {r, photos: fresh.length ? fresh : ps, skipped: fresh.length ? ps.length - fresh.length : 0, allCopies: !fresh.length && ps.length > 0, viewAll};
+  });
+  const j = keepKey ? ADH.findIndex(x => x.r.key === keepKey) : -1;
+  if (j >= 0) { adhLi = j; if (!keepPhoto) adhPi = 0; } else { adhLi = 0; adhPi = 0; }
+}
+function adhPhoto(d) { const it = ADH[adhLi], n = it?.photos.length; if (!n) return; adhPi = (adhPi + d + n) % n; renderAdhoc(); }
+function adhListing(d) {
+  const j = adhLi + d;
+  if (j < 0 || j >= ADH.length) return flash(d > 0 ? 'Last listing' : 'First listing');
+  adhLi = j; adhPi = 0; renderAdhoc();
+}
+function adhKey(e) {
+  const it = ADH[adhLi];
+  const act = {ArrowRight: () => adhPhoto(1), ArrowLeft: () => adhPhoto(-1), ArrowDown: () => adhListing(1), ArrowUp: () => adhListing(-1),
+               r: cycleView, R: cycleView, o: () => it && window.open(safeUrl(it.r.url), '_blank', 'noopener,noreferrer')}[e.key];
+  if (e.key === 'O' && it) { e.preventDefault(); return window.open(safeUrl(it.r.url), '_blank', 'noopener,noreferrer'); }
+  if (act) { e.preventDefault(); act(); }
+}
+function missingHtml() {
+  if (!adhMissing.length) return '';
+  return `<div class="notes">Ticked, no photos yet (${adhMissing.length}): `
+    + adhMissing.map(r => `<a href="${esc(safeUrl(r.url))}" target="_blank" rel="noopener noreferrer">${esc(r.name || r.key)}</a>${r.room ? ` (${esc(r.room)})` : ''}`).join(' · ')
+    + `<br><span style="color:#777">fetch_photos.py, then sheet_review.py export, in intrepid-tuning</span></div>`;
+}
+function adhMeta(r, it) {
+  const d = r.details || {}, k = r.ranking || {};
+  const num = v => v === '' || isNaN(+v) ? null : +v;
+  const signedM = v => (v >= 0 ? '+' : '−') + '$' + Math.abs(Math.round(v));
+  const site = (d['Site'] || (r.key.startsWith('air:') ? 'Airbnb' : 'Booking'));
+  const night = parseFloat(r.night);
+  const free = d['Free Cancellation'];
+  const rate = r.key.startsWith('book:') ? [d['Meal Plan'] || 'room only', free === 'yes' ? 'free cancellation' : free === 'no' ? 'non-refundable' : ''].filter(Boolean).join(', ') : '';
+  const rank = [k.tier && `Tier <b>${esc(k.tier)}</b>`, k.rateRank && `Rate Rank <b>${esc(k.rateRank)}</b>`,
+                num(k.value) != null && `Value <b>$${Math.round(num(k.value))}</b>`, num(k.surplus) != null && `Surplus <b class="${num(k.surplus) >= 0 ? 'pos' : 'neg'}">${signedM(num(k.surplus))}</b>`].filter(Boolean);
+  const commute = cellOf(r, 'Est. Commute (min)'), station = cellOf(r, 'Commute Station');
+  const flagged = (LISTINGS[r.key]?.photos || []).filter(p => p.flag);
+  const flagTitles = [...new Set(flagged.map(p => p.flag.split(' · ')[0]))];
+  return [
+    `<span class="adh-order">${esc(adhOrder)}: ${esc(cellOf(r, adhOrder).split('\n')[0] || '—')}</span>`,
+    `<span class="pill ${site === 'Airbnb' ? 'air' : 'book'}">${esc(site)}</span> ${esc(r.district)}${r.room ? ` · <b>${esc(r.room)}</b>` : ''}`,
+    (isNaN(night) ? `<span style="color:#e67e22">${esc(r.night || 'no price')}</span>` : `<b>$${Math.round(night)}</b>/night`) + (rate ? ` · ${esc(rate)}` : ''),
+    rank.length ? `<span class="adh-rank">${rank.join(' · ')}</span>` : '',
+    commute || station ? `🚆 ${commute ? `${esc(commute)} min` : ''}${station ? ` via ${esc(station)}` : ''}` : '',
+    d['Rating'] ? `★ ${esc(d['Rating'])}${d['Location'] ? ` · 📍 ${esc(d['Location'])}` : ''}` : '',
+    [d['Review Flags'] && `💬 ${esc(d['Review Flags'])}`, d['Room Review Flags'] && `this room: ${esc(d['Room Review Flags'])}`].filter(Boolean).join(' — '),
+    r.dealScan ? `<span class="dealnote">Deal scan ${esc(r.dealScan)}</span>` : '',
+    flagged.length ? `<span style="color:#fde3b0">⚑ ${flagged.length} photo${flagged.length === 1 ? '' : 's'} flagged: ${esc(flagTitles.join(', '))}</span>` : '',
+    it && it.allCopies ? '<span class="reuse">⧉ the same pictures as an earlier room of this hotel</span>'
+      : it && it.skipped ? `<span class="reuse">⧉ ${it.skipped} picture${it.skipped === 1 ? '' : 's'} shown under an earlier room</span>` : '',
+  ].filter(Boolean).join('<br>');
+}
+function renderAdhoc() {
+  const it = ADH[adhLi];
+  for (const id of ['banner', 'mark-badge']) $(id).className = '';
+  $('reuse-badge').style.display = 'none';
+  $('stage').classList.remove('rejected');
+  $('adh-progress').innerHTML = it ? `listing <b>${adhLi + 1}</b> / ${ADH.length} · photo ${it.photos.length ? adhPi + 1 : 0} / ${it.photos.length}` : '';
+  $('photo-view').value = photoView;
+  const p = it && it.photos[Math.min(adhPi, it.photos.length - 1)];
+  if (!it || !p) {
+    $('photo').style.display = 'none'; $('flag-badge').style.display = 'none';
+    if (!it) { $('strip').innerHTML = ''; $('strip').dataset.key = ''; }
+    $('empty').style.display = '';
+    const region = $('region-sel').value, inReg = region && region !== 'ALL' ? ` in ${esc(region)}` : '';
+    $('empty').innerHTML = it ? `No photos of this listing in this view.<br>Press R for another view.`
+      : !adhTicked ? `No rows ticked “${esc(REVIEWER)} Adhoc”${inReg}: tick some in the sheet, then ↻ sheet.`
+      : `None of the ${adhTicked} rows ticked “${esc(REVIEWER)} Adhoc”${inReg} has photos yet.`;
+    $('l-name').innerHTML = it ? `<a href="${esc(safeUrl(it.r.url))}" target="_blank" rel="noopener noreferrer">${esc(it.r.name || it.r.key)}</a>` : '';
+    $('l-meta').innerHTML = it ? adhMeta(it.r, it) : '';
+    $('l-notes').innerHTML = missingHtml(); $('p-info').innerHTML = '';
+    if (!it) return;
+  } else {
+    $('empty').style.display = 'none'; $('photo').style.display = '';
+    if ($('photo').dataset.src !== p.url) { $('photo').src = p.url; $('photo').dataset.src = p.url; }
+    $('flag-badge').style.display = p.flag ? 'block' : 'none';
+    $('flag-badge').textContent = p.flag ? '⚑ flagged: ' + p.flag.split(' · ')[0] : '';
+    const r = it.r;
+    $('l-name').innerHTML = `<a href="${esc(safeUrl(r.url))}" target="_blank" rel="noopener noreferrer">${esc(r.name || r.key)}</a>`;
+    $('l-meta').innerHTML = adhMeta(r, it);
+    $('l-notes').innerHTML = missingHtml();
+    const tags = [p.cls === 'unknown' && '<span class="tag unsorted">unsorted</span>', p.cls === 'other' && '<span class="tag nonroom">non-room</span>',
+                  p.room && `<span class="tag">${esc(p.room)}</span>`].filter(Boolean).join('');
+    $('p-info').innerHTML = `Photo ${adhPi + 1} / ${it.photos.length} ${tags}<br><span id="p-label">${esc(p.label)}</span>`
+      + (it.viewAll ? '<div class="reuse">No room-sorted photos: showing all</div>' : '')
+      + (p.flag ? `<div class="flagnote">⚑ ${esc(p.flag)}</div>` : '');
+  }
+  const key = `adh|${it.r.key}|${photoView}|${it.photos.length}`;
+  if ($('strip').dataset.key !== key) {
+    $('strip').dataset.key = key;
+    $('strip').innerHTML = it.photos.map((sp, i) => `<img src="${esc(sp.thumb)}" data-ai="${i}" referrerpolicy="no-referrer" decoding="async">`).join('');
+  }
+  for (const im of $('strip').children) im.className = +im.dataset.ai === adhPi ? 'cur' : 'seen';
+  $('strip').querySelector('.cur')?.scrollIntoView({block: 'nearest', inline: 'center'});
+  const nx = it.photos[adhPi + 1] || ADH[adhLi + 1]?.photos[0];
+  if (nx) { const im = new Image(); im.referrerPolicy = 'no-referrer'; im.src = nx.url; }
+}
+$('adh-btn').onclick = e => { e.target.blur(); setAdhoc(!ADHOC); };
+$('adh-order').onchange = e => { e.target.blur(); adhOrder = e.target.value; setAdhocUrl(); buildAdhoc(ADH[adhLi]?.r.key); renderAdhoc(); };
+$('adh-dir').onclick = e => { e.target.blur(); adhDesc = !adhDesc; setAdhocOrders(); setAdhocUrl(); buildAdhoc(ADH[adhLi]?.r.key); renderAdhoc(); };
+$('adh-prev').onclick = () => adhPhoto(-1);
+$('adh-next').onclick = () => adhPhoto(1);
+$('adh-prev-l').onclick = () => adhListing(-1);
+$('adh-next-l').onclick = () => adhListing(1);
 
 // ---------- compare questions (intrepid-tuning listing_photos/compare_batch.py) ----------
 // Python does all the ranking; this page only asks. Per tab:
@@ -1354,7 +1589,7 @@ function cmpUndo() {
 function setCompare(on) {
   CMP = !!on && (HAS_QUEUE || PARAMS.get('compare') === '1');
   $('app').classList.toggle('cmp', CMP);
-  $('cmp-btn').style.display = HAS_QUEUE || CMP ? '' : 'none';
+  modeButtons();
   $('cmp-btn').textContent = CMP ? 'Photos' : 'Compare';
   const u = new URL(location.href);
   if (CMP) u.searchParams.set('compare', '1'); else u.searchParams.delete('compare');
@@ -1562,7 +1797,10 @@ async function reloadData(userAsked) {
     setRegions(); setupPrice(); setupDeals();
     buildOrder(items[pos]?.pk); render();
     cmpQ = null; renderCmp();
-    if (userAsked) flash(CMP ? `Batch ${BATCH || '—'}: ${QUEUE.length} questions`
+    modeButtons();
+    if (ADHOC) { setAdhocOrders(); setAdhocRegions(); buildAdhoc(ADH[adhLi]?.r.key); renderAdhoc(); }
+    if (userAsked) flash(ADHOC ? `${ROWS.filter(r => r.adhoc_pick).length} rows ticked “${REVIEWER} Adhoc” · ${ADH.length} listings with photos`
+                       : CMP ? `Batch ${BATCH || '—'}: ${QUEUE.length} questions`
                              : `${ROWS.filter(r => r.review_pick).length} rows ticked · ${Object.keys(LISTINGS).length} listings with photos`);
   } catch (e) {
     if (e instanceof AuthError) authLost(); else flash('Reload failed: ' + e.message);
@@ -1610,11 +1848,15 @@ function pickReviewer() {
   $('picks-chk').checked = store('picks') !== '0';   // on by default
   $('picks-label').textContent = REVIEWER + ' picks only';
   setupPrice(); setupDeals();
-  buildOrder(store('pos'));
-  if (!store('pos') || PARAMS.get('region') || PARAMS.get('deals')) nextUnreviewedFromStart(); else render();
+  ADHOC = PARAMS.get('adhoc') === '1' && PARAMS.get('compare') !== '1';   // set first: the review screen isn't drawn
+  if (!ADHOC) {
+    buildOrder(store('pos'));
+    if (!store('pos') || PARAMS.get('region') || PARAMS.get('deals')) nextUnreviewedFromStart(); else render();
+  }
   cmpViewName = PHOTO_VIEWS[store('cmpView')] ? store('cmpView') : 'rooms';
   loadCmpPending();
   setCompare(PARAMS.get('compare') === '1');   // the address decides: a photo-review bookmark stays one
+  if (ADHOC) setAdhoc(true);
   window.addEventListener('beforeunload', e => {
     if (items[pos]) store('pos', items[pos].pk);
     if (pending.length || cmpPending.length) { e.preventDefault(); e.returnValue = ''; }
