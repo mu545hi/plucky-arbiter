@@ -7,3 +7,4 @@
 *.jpg
 .env*
 .DS_Store
+tests/shots/
